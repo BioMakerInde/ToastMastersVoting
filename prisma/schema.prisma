@@ -1,0 +1,154 @@
+// Prisma schema for Toastmasters Voting System
+// Version: Prisma 5
+// Database: PostgreSQL (Supabase)
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+model User {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  password  String
+  name      String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  members   Member[]
+}
+
+model Club {
+  id              String   @id @default(cuid())
+  name            String
+  description     String?
+  clubNumber      String?  @unique
+  areaNumber      String?
+  divisionNumber  String?
+  districtNumber  String?
+  website         String?
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  members         Member[]
+  meetings        Meeting[]
+  categories      VotingCategory[]
+}
+
+enum MemberRole {
+  ADMIN
+  OFFICER
+  MEMBER
+  GUEST
+}
+
+enum MemberStatus {
+  PENDING
+  ACTIVE
+  REJECTED
+}
+
+model Member {
+  id               String       @id @default(cuid())
+  userId           String
+  clubId           String
+  role             MemberRole   @default(MEMBER)
+  status           MemberStatus @default(PENDING) // Default to pending approval
+  membershipNumber String?
+  qrCode           String?      @unique
+  isActive         Boolean      @default(true) // Deprecated in favor of status, keeping for compat temporarily
+  joinedAt         DateTime     @default(now())
+  user             User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  club             Club         @relation(fields: [clubId], references: [id], onDelete: Cascade)
+  votes            Vote[]
+  nominations      Nomination[]
+  @@unique([userId, clubId])
+}
+
+model Meeting {
+  id              String   @id @default(cuid())
+  clubId          String
+  title           String
+  description     String?
+  meetingDate     DateTime
+  votingStartTime DateTime?
+  votingEndTime   DateTime?
+  isVotingOpen    Boolean  @default(false)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  club            Club     @relation(fields: [clubId], references: [id], onDelete: Cascade)
+  votes           Vote[]
+  results         VoteResult[]
+  nominations     Nomination[]
+  categories      MeetingCategory[]
+}
+
+model VotingCategory {
+  id           String   @id @default(cuid())
+  clubId       String
+  name         String
+  description  String?
+  displayOrder Int      @default(0)
+  isActive     Boolean  @default(true)
+  isDefault    Boolean  @default(false)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+  club         Club     @relation(fields: [clubId], references: [id], onDelete: Cascade)
+  votes        Vote[]
+  results      VoteResult[]
+  nominations  Nomination[]
+  meetingCategories MeetingCategory[]
+  @@unique([clubId, name])
+}
+
+model Nomination {
+  id         String   @id @default(cuid())
+  meetingId  String
+  categoryId String
+  memberId   String
+  nominatedBy String?
+  createdAt DateTime @default(now())
+  meeting    Meeting        @relation(fields: [meetingId], references: [id], onDelete: Cascade)
+  category   VotingCategory @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+  member     Member         @relation(fields: [memberId], references: [id], onDelete: Cascade)
+  @@unique([meetingId, categoryId, memberId])
+}
+
+model MeetingCategory {
+  id         String   @id @default(cuid())
+  meetingId  String
+  categoryId String
+  createdAt  DateTime @default(now())
+  meeting    Meeting        @relation(fields: [meetingId], references: [id], onDelete: Cascade)
+  category   VotingCategory @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+  @@unique([meetingId, categoryId])
+}
+
+model Vote {
+  id         String   @id @default(cuid())
+  meetingId  String
+  categoryId String
+  voterId    String
+  nomineeId String
+  createdAt DateTime @default(now())
+  meeting    Meeting        @relation(fields: [meetingId], references: [id], onDelete: Cascade)
+  category   VotingCategory @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+  voter      Member         @relation(fields: [voterId], references: [id], onDelete: Cascade)
+  @@unique([meetingId, categoryId, voterId])
+}
+
+model VoteResult {
+  id           String   @id @default(cuid())
+  meetingId    String
+  categoryId   String
+  winnerId     String?
+  voteCount    Int      @default(0)
+  totalVotes   Int      @default(0)
+  calculatedAt DateTime @default(now())
+  meeting      Meeting        @relation(fields: [meetingId], references: [id], onDelete: Cascade)
+  category     VotingCategory @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+  @@unique([meetingId, categoryId])
+}
