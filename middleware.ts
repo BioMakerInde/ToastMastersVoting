@@ -10,6 +10,9 @@ export function middleware(request: NextRequest) {
         pathname === '/register' ||
         pathname.startsWith('/vote/') ||
         pathname.startsWith('/api/auth') ||
+        pathname.startsWith('/api/meetings/') ||  // Allow public access to meeting details
+        pathname.startsWith('/api/clubs/') ||     // Allow public access to club members
+        pathname.startsWith('/api/votes') ||      // Allow public vote submission
         pathname.includes('.') || // static files like .png, .ico
         pathname.startsWith('/_next'); // internal nextjs files
 
