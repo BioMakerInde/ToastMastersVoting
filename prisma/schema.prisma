@@ -115,17 +115,20 @@ model MeetingCategory {
 }
 
 model Vote {
-  id         String         @id @default(cuid())
-  meetingId  String
-  categoryId String
-  voterId    String
-  nomineeId  String
-  createdAt  DateTime       @default(now())
-  category   VotingCategory @relation(fields: [categoryId], references: [id], onDelete: Cascade)
-  meeting    Meeting        @relation(fields: [meetingId], references: [id], onDelete: Cascade)
-  voter      Member         @relation(fields: [voterId], references: [id], onDelete: Cascade)
+  id               String         @id @default(cuid())
+  meetingId        String
+  categoryId       String
+  voterId          String?
+  nomineeId        String
+  isAnonymous      Boolean        @default(false)
+  voterFingerprint String?
+  createdAt        DateTime       @default(now())
+  category         VotingCategory @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+  meeting          Meeting        @relation(fields: [meetingId], references: [id], onDelete: Cascade)
+  voter            Member?        @relation(fields: [voterId], references: [id], onDelete: Cascade)
 
   @@unique([meetingId, categoryId, voterId])
+  @@unique([meetingId, categoryId, voterFingerprint])
 }
 
 model VoteResult {

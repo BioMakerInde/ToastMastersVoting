@@ -2,16 +2,27 @@ import { NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth'
 import { authOptions } from '@/app/api/auth/[...nextauth]/route'
 import { prisma } from '@/lib/prisma'
-import { validateVote } from '@/lib/vote-validator'
+import { validateVote, validateAnonymousVote } from '@/lib/vote-validator'
+import crypto from 'crypto'
+
+// Helper function to generate voter fingerprint
+function generateFingerprint(request: Request): string {
+    const ip = request.headers.get('x-forwarded-for') ||
+        request.headers.get('x-real-ip') ||
+        'unknown';
+    const userAgent = request.headers.get('user-agent') || 'unknown';
+
+    // Create a hash of IP + User-Agent
+    return crypto
+        .createHash('sha256')
+        .update(`${ip}-${userAgent}`)
+        .digest('hex');
+}
 
 // POST submit a vote
 export async function POST(request: Request) {
     try {
         const session = await getServerSession(authOptions)
-        if (!session?.user) {
-            return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-        }
-
         const { meetingId, categoryId, nomineeId } = await request.json()
 
         if (!meetingId || !categoryId || !nomineeId) {
@@ -21,44 +32,73 @@ export async function POST(request: Request) {
             )
         }
 
-        // Get voter's member ID
-        const meeting = await prisma.meeting.findUnique({
-            where: { id: meetingId },
-            select: { clubId: true },
-        })
+        // Handle authenticated vote
+        if (session?.user) {
+            // Get voter's member ID
+            const meeting = await prisma.meeting.findUnique({
+                where: { id: meetingId },
+                select: { clubId: true },
+            })
 
-        if (!meeting) {
-            return NextResponse.json({ error: 'Meeting not found' }, { status: 404 })
-        }
+            if (!meeting) {
+                return NextResponse.json({ error: 'Meeting not found' }, { status: 404 })
+            }
 
-        const voter = await prisma.member.findFirst({
-            where: {
-                userId: session.user.id,
-                clubId: meeting.clubId,
-                isActive: true,
-            },
-        })
+            const voter = await prisma.member.findFirst({
+                where: {
+                    userId: session.user.id,
+                    clubId: meeting.clubId,
+                    isActive: true,
+                },
+            })
 
-        if (!voter) {
+            if (!voter) {
+                return NextResponse.json(
+                    { error: 'You are not an active member of this club' },
+                    { status: 403 }
+                )
+            }
+
+            // Validate vote
+            const validation = await validateVote(voter.id, meetingId, categoryId)
+            if (!validation.isValid) {
+                return NextResponse.json({ error: validation.error }, { status: 400 })
+            }
+
+            // Submit authenticated vote
+            const vote = await prisma.vote.create({
+                data: {
+                    meetingId,
+                    categoryId,
+                    voterId: voter.id,
+                    nomineeId,
+                    isAnonymous: false,
+                },
+            })
+
             return NextResponse.json(
-                { error: 'You are not an active member of this club' },
-                { status: 403 }
+                { message: 'Vote submitted successfully', vote },
+                { status: 201 }
             )
         }
 
-        // Validate vote
-        const validation = await validateVote(voter.id, meetingId, categoryId)
+        // Handle anonymous vote
+        const fingerprint = generateFingerprint(request)
+
+        // Validate anonymous vote
+        const validation = await validateAnonymousVote(fingerprint, meetingId, categoryId)
         if (!validation.isValid) {
             return NextResponse.json({ error: validation.error }, { status: 400 })
         }
 
-        // Submit vote
+        // Submit anonymous vote
         const vote = await prisma.vote.create({
             data: {
                 meetingId,
                 categoryId,
-                voterId: voter.id,
                 nomineeId,
+                isAnonymous: true,
+                voterFingerprint: fingerprint,
             },
         })
 

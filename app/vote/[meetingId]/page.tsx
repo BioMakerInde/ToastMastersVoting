@@ -1,9 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { useSession, signIn } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
-import Link from 'next/link';
 import { use } from 'react';
 
 // Types
@@ -20,7 +18,6 @@ interface Member {
 }
 
 export default function VotingPage({ params }: { params: Promise<{ meetingId: string }> }) {
-    const { data: session, status } = useSession();
     const router = useRouter();
     const { meetingId } = use(params);
 
@@ -131,37 +128,6 @@ export default function VotingPage({ params }: { params: Promise<{ meetingId: st
         </div>
     );
 
-    // --- Unauthenticated Landing Page ---
-    if (status === 'unauthenticated' || !session) {
-        return (
-            <div className="min-h-screen bg-[#FDFCFB] flex items-center justify-center p-6">
-                <div className="max-w-md w-full bg-white rounded-[2.5rem] shadow-2xl border border-gray-100 overflow-hidden text-center">
-                    <div className="bg-indigo-900 py-12 px-8 text-white relative overflow-hidden">
-                        <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full -mr-16 -mt-16"></div>
-                        <h2 className="text-sm font-black uppercase tracking-widest text-indigo-300 mb-2">Welcome to</h2>
-                        <h1 className="text-3xl font-black leading-tight tracking-tight">{meetingData?.title || 'Toastmasters Session'}</h1>
-                    </div>
-                    <div className="p-10 space-y-8">
-                        <div>
-                            <p className="text-gray-500 font-medium leading-relaxed">To participate in this live poll, please verify your membership by logging in.</p>
-                        </div>
-                        <div className="space-y-3">
-                            <button
-                                onClick={() => setLoading(false)} // This is a bit of a hack to "enter" if we want to bypass landing
-                                className="w-full bg-indigo-600 text-white py-4 rounded-2xl font-black text-lg hover:bg-indigo-700 transition shadow-xl shadow-indigo-100 active:scale-95"
-                            >
-                                Start Voting
-                            </button>
-                        </div>
-                        <div className="pt-6 border-t border-gray-50">
-                            <p className="text-[10px] font-black uppercase tracking-widest text-gray-300">Club Intelligence System</p>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        );
-    }
-
     // --- Success State ---
     if (success) return (
         <div className="min-h-screen flex items-center justify-center bg-gray-50 p-4">
@@ -173,9 +139,7 @@ export default function VotingPage({ params }: { params: Promise<{ meetingId: st
                 </div>
                 <h2 className="text-3xl font-extrabold text-gray-900 mb-2">Vote Recorded!</h2>
                 <p className="text-gray-600 mb-8 px-2">Thank you for participating. Your contribution matters!</p>
-                <Link href="/dashboard" className="inline-block bg-indigo-600 text-white px-8 py-3 rounded-xl font-bold hover:bg-indigo-700 transition shadow-lg hover:shadow-indigo-200">
-                    Return to Dashboard
-                </Link>
+                <p className="text-sm text-gray-500">You can close this window now.</p>
             </div>
         </div>
     );
