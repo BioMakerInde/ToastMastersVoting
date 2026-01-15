@@ -126,9 +126,6 @@ model Vote {
   category         VotingCategory @relation(fields: [categoryId], references: [id], onDelete: Cascade)
   meeting          Meeting        @relation(fields: [meetingId], references: [id], onDelete: Cascade)
   voter            Member?        @relation(fields: [voterId], references: [id], onDelete: Cascade)
-
-  @@unique([meetingId, categoryId, voterId])
-  @@unique([meetingId, categoryId, voterFingerprint])
 }
 
 model VoteResult {

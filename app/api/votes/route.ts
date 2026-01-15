@@ -2,7 +2,6 @@ import { NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth'
 import { authOptions } from '@/app/api/auth/[...nextauth]/route'
 import { prisma } from '@/lib/prisma'
-import { validateVote, validateAnonymousVote } from '@/lib/vote-validator'
 import crypto from 'crypto'
 
 // Helper function to generate voter fingerprint
@@ -59,11 +58,6 @@ export async function POST(request: Request) {
                 )
             }
 
-            // Validate vote
-            const validation = await validateVote(voter.id, meetingId, categoryId)
-            if (!validation.isValid) {
-                return NextResponse.json({ error: validation.error }, { status: 400 })
-            }
 
             // Submit authenticated vote
             const vote = await prisma.vote.create({
@@ -85,11 +79,6 @@ export async function POST(request: Request) {
         // Handle anonymous vote
         const fingerprint = generateFingerprint(request)
 
-        // Validate anonymous vote
-        const validation = await validateAnonymousVote(fingerprint, meetingId, categoryId)
-        if (!validation.isValid) {
-            return NextResponse.json({ error: validation.error }, { status: 400 })
-        }
 
         // Submit anonymous vote
         const vote = await prisma.vote.create({
