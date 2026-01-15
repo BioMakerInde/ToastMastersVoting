@@ -28,7 +28,9 @@ export default function MeetingDetailsPage({ params }: { params: Promise<{ id: s
     useEffect(() => {
         setMounted(true);
         if (typeof window !== 'undefined') {
-            setVotingLink(`${window.location.origin}/vote/${id}`);
+            // Use production URL from env var, fallback to current origin for local dev
+            const baseUrl = process.env.NEXT_PUBLIC_APP_URL || window.location.origin;
+            setVotingLink(`${baseUrl}/vote/${id}`);
         }
         fetchMeetingDetails();
     }, [id]);

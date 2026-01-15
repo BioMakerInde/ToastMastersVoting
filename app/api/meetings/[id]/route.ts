@@ -5,11 +5,6 @@ import { authOptions } from '../../auth/[...nextauth]/route';
 
 export async function GET(req: Request, props: { params: Promise<{ id: string }> }) {
     const params = await props.params;
-    const session = await getServerSession(authOptions);
-
-    if (!session || !session.user?.email) {
-        return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    }
 
     try {
         const meeting = await prisma.meeting.findUnique({
@@ -37,10 +32,6 @@ export async function GET(req: Request, props: { params: Promise<{ id: string }>
         if (!meeting) {
             return NextResponse.json({ error: 'Meeting not found' }, { status: 404 });
         }
-
-        // Optional: Check if user belongs to the club (for security)
-        // For now, allowing any authenticated user to view details (needed for voting if they just scan QR)
-        // But for ADMIN page, we want this.
 
         return NextResponse.json(meeting);
     } catch (error) {
