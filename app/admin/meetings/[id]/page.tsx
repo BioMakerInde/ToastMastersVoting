@@ -354,8 +354,13 @@ export default function MeetingDetailsPage({ params }: { params: Promise<{ id: s
                                                     <div className="flex items-center gap-4">
                                                         <button
                                                             onClick={() => toggleCategory(category.id)}
-                                                            disabled={isToggling}
-                                                            className={`w-12 h-6 rounded-full relative transition-colors duration-200 ${isEnabled ? 'bg-indigo-600' : 'bg-gray-200'} ${isToggling ? 'opacity-50 cursor-wait' : 'cursor-pointer'}`}
+                                                            disabled={isToggling || meeting.isVotingOpen}
+                                                            className={`w-12 h-6 rounded-full relative transition-colors duration-200 ${meeting.isVotingOpen
+                                                                    ? 'bg-gray-300 cursor-not-allowed'
+                                                                    : isEnabled
+                                                                        ? 'bg-indigo-600'
+                                                                        : 'bg-gray-200'
+                                                                } ${isToggling ? 'opacity-50 cursor-wait' : !meeting.isVotingOpen ? 'cursor-pointer' : ''}`}
                                                         >
                                                             <div className={`absolute top-1 left-1 bg-white w-4 h-4 rounded-full transition-transform duration-200 ${isEnabled ? 'translate-x-6' : 'translate-x-0'} flex items-center justify-center`}>
                                                                 {isToggling && <div className="w-2 h-2 border border-indigo-600 border-t-transparent animate-spin rounded-full"></div>}
@@ -385,10 +390,10 @@ export default function MeetingDetailsPage({ params }: { params: Promise<{ id: s
                                                                     onClick={() => toggleNomination(category.id, member.id)}
                                                                     disabled={isChanging || meeting.isVotingOpen}
                                                                     className={`flex items-center justify-between px-5 py-3 rounded-2xl border-2 transition-all text-left group ${meeting.isVotingOpen
-                                                                            ? 'opacity-60 cursor-not-allowed'
-                                                                            : isActive
-                                                                                ? 'bg-indigo-600 border-indigo-600 text-white shadow-lg shadow-indigo-100'
-                                                                                : 'bg-white border-gray-100 text-gray-700 hover:border-indigo-200 hover:bg-gray-50'
+                                                                        ? 'opacity-60 cursor-not-allowed'
+                                                                        : isActive
+                                                                            ? 'bg-indigo-600 border-indigo-600 text-white shadow-lg shadow-indigo-100'
+                                                                            : 'bg-white border-gray-100 text-gray-700 hover:border-indigo-200 hover:bg-gray-50'
                                                                         }`}
                                                                 >
                                                                     <div className="flex flex-col">
