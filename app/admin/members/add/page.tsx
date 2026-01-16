@@ -32,14 +32,15 @@ export default function AddMemberPage() {
 
     const fetchUserClubs = async () => {
         try {
-            const res = await fetch('/api/clubs');
+            const res = await fetch('/api/clubs?managed=true');
             if (res.ok) {
                 const data = await res.json();
-                setClubs(data.clubs || []);
+                // API returns array directly
+                setClubs(Array.isArray(data) ? data : []);
                 // Auto-select first club if only one
-                if (data.clubs?.length === 1) {
-                    setFormData(prev => ({ ...prev, clubId: data.clubs[0].id }));
-                    await generateMembershipId(data.clubs[0].id);
+                if (data?.length === 1) {
+                    setFormData(prev => ({ ...prev, clubId: data[0].id }));
+                    await generateMembershipId(data[0].id);
                 }
             }
         } catch (e) {
