@@ -24,6 +24,9 @@ export default function MeetingDetailsPage({ params }: { params: Promise<{ id: s
     const [clubMembers, setClubMembers] = useState<any[]>([]);
     const [nominating, setNominating] = useState<string | null>(null);
     const [togglingCategory, setTogglingCategory] = useState<string | null>(null);
+    const [pendingNominations, setPendingNominations] = useState<Set<string>>(new Set());
+    const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
+    const [isSaving, setIsSaving] = useState(false);
 
     useEffect(() => {
         setMounted(true);
@@ -34,6 +37,17 @@ export default function MeetingDetailsPage({ params }: { params: Promise<{ id: s
         }
         fetchMeetingDetails();
     }, [id]);
+
+    // Initialize pending nominations from meeting data
+    useEffect(() => {
+        if (meeting?.nominations) {
+            const nominations = new Set<string>();
+            meeting.nominations.forEach((n: any) => {
+                nominations.add(`${n.categoryId}-${n.memberId}`);
+            });
+            setPendingNominations(nominations);
+        }
+    }, [meeting?.id]); // Only run when meeting ID changes
 
     const fetchMeetingDetails = async () => {
         setLoading(true);
@@ -79,33 +93,58 @@ export default function MeetingDetailsPage({ params }: { params: Promise<{ id: s
         }
     };
 
-    const toggleNomination = async (categoryId: string, memberId: string) => {
-        setNominating(`${categoryId}-${memberId}`);
+    const toggleNomination = (categoryId: string, memberId: string) => {
+        const key = `${categoryId}-${memberId}`;
+        setPendingNominations(prev => {
+            const next = new Set(prev);
+            if (next.has(key)) {
+                next.delete(key);
+            } else {
+                next.add(key);
+            }
+            return next;
+        });
+        setHasUnsavedChanges(true);
+    };
+
+    const saveNominations = async () => {
+        setIsSaving(true);
         try {
-            const res = await fetch(`/api/meetings/${id}/nominations`, {
+            // Send all nominations to backend
+            const nominations = Array.from(pendingNominations).map(key => {
+                const [categoryId, memberId] = key.split('-');
+                return { categoryId, memberId };
+            });
+
+            const res = await fetch(`/api/meetings/${id}/nominations/batch`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ categoryId, memberId })
+                body: JSON.stringify({ nominations })
             });
+
             if (res.ok) {
-                // Manually update the meeting state or refetch
-                const updatedRes = await fetch(`/api/meetings/${id}`);
-                const updatedData = await updatedRes.json();
-                if (updatedRes.ok) {
-                    setMeeting(updatedData);
-                }
+                // Refresh meeting data
+                await fetchMeetingDetails();
+                setHasUnsavedChanges(false);
+                alert('Nominations saved successfully!');
             } else {
-                const d = await res.json();
-                alert(d.error || 'Failed to update nomination');
+                const data = await res.json();
+                alert(data.error || 'Failed to save nominations');
             }
         } catch (e) {
             alert('Connection error');
         } finally {
-            setNominating(null);
+            setIsSaving(false);
         }
     };
 
     const isNominated = (categoryId: string, memberId: string) => {
+        const key = `${categoryId}-${memberId}`;
+        // Check pending changes first
+        if (hasUnsavedChanges && pendingNominations.has(key)) {
+            return true;
+        }
+        // Check saved nominations
         return meeting?.nominations?.some((n: any) => n.categoryId === categoryId && n.memberId === memberId);
     };
 
@@ -205,13 +244,25 @@ export default function MeetingDetailsPage({ params }: { params: Promise<{ id: s
                         >
                             📊 View Results
                         </Link>
-                        <button
-                            onClick={toggleVoting}
-                            className={`${meeting.isVotingOpen ? 'bg-red-500 hover:bg-red-600' : 'bg-green-500 hover:bg-green-600'} text-white px-8 py-3 rounded-2xl font-black transition-all shadow-xl active:scale-95 flex items-center gap-2`}
-                        >
-                            <span className={`w-2 h-2 rounded-full bg-white ${meeting.isVotingOpen ? 'animate-pulse' : ''}`}></span>
-                            {meeting.isVotingOpen ? 'Close Polling' : 'Start Polling'}
-                        </button>
+                        {meeting.isVotingOpen ? (
+                            <button
+                                onClick={toggleVoting}
+                                className="bg-red-500 hover:bg-red-600 text-white px-8 py-3 rounded-2xl font-black transition-all shadow-xl active:scale-95 flex items-center gap-2"
+                            >
+                                <span className="w-2 h-2 rounded-full bg-white animate-pulse"></span>
+                                End Voting
+                            </button>
+                        ) : (
+                            <button
+                                onClick={toggleVoting}
+                                disabled={hasUnsavedChanges}
+                                className={`bg-green-500 hover:bg-green-600 text-white px-8 py-3 rounded-2xl font-black transition-all shadow-xl active:scale-95 flex items-center gap-2 ${hasUnsavedChanges ? 'opacity-50 cursor-not-allowed' : ''}`}
+                                title={hasUnsavedChanges ? 'Save nominations before starting voting' : ''}
+                            >
+                                <span className="w-2 h-2 rounded-full bg-white"></span>
+                                Enable Voting
+                            </button>
+                        )}
                     </div>
                 </div>
             </div>
@@ -247,16 +298,43 @@ export default function MeetingDetailsPage({ params }: { params: Promise<{ id: s
                     {/* Right Column: Nominee Assignment */}
                     <div className="lg:col-span-2">
                         <div className="bg-white rounded-[2rem] shadow-xl shadow-gray-200/50 border border-gray-100 overflow-hidden">
-                            <div className="px-10 py-8 bg-gray-50/50 border-b border-gray-100 flex items-center justify-between">
-                                <div>
-                                    <h3 className="text-2xl font-black text-gray-900">Poll Configuration</h3>
-                                    <p className="text-gray-500 mt-1">Select valid categories and assign performers for this session.</p>
+                            <div className="px-10 py-8 bg-gray-50/50 border-b border-gray-100">
+                                <div className="flex items-center justify-between mb-4">
+                                    <div>
+                                        <h3 className="text-2xl font-black text-gray-900">Poll Configuration</h3>
+                                        <p className="text-gray-500 mt-1">Select valid categories and assign performers for this session.</p>
+                                    </div>
+                                    <div className="flex items-center gap-3">
+                                        <span className="text-[10px] font-black uppercase tracking-widest text-indigo-600 bg-indigo-50 px-3 py-1 rounded-full">
+                                            {enabledCategoryIds.size} Active Categories
+                                        </span>
+                                        {hasUnsavedChanges && (
+                                            <button
+                                                onClick={saveNominations}
+                                                disabled={isSaving}
+                                                className="bg-indigo-600 hover:bg-indigo-700 text-white px-6 py-2 rounded-xl font-bold transition-all shadow-lg disabled:opacity-50"
+                                            >
+                                                {isSaving ? 'Saving...' : 'Save Changes'}
+                                            </button>
+                                        )}
+                                    </div>
                                 </div>
-                                <div className="text-right">
-                                    <span className="text-[10px] font-black uppercase tracking-widest text-indigo-600 bg-indigo-50 px-3 py-1 rounded-full">
-                                        {enabledCategoryIds.size} Active Categories
-                                    </span>
-                                </div>
+                                {meeting.isVotingOpen && (
+                                    <div className="bg-yellow-50 border-l-4 border-yellow-400 p-4 rounded-r-lg">
+                                        <div className="flex">
+                                            <div className="flex-shrink-0">
+                                                <svg className="h-5 w-5 text-yellow-400" fill="currentColor" viewBox="0 0 20 20">
+                                                    <path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+                                                </svg>
+                                            </div>
+                                            <div className="ml-3">
+                                                <p className="text-sm text-yellow-700 font-medium">
+                                                    Voting is currently active. End voting to make changes to nominations.
+                                                </p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                )}
                             </div>
 
                             <div className="p-10 space-y-12">
@@ -305,10 +383,12 @@ export default function MeetingDetailsPage({ params }: { params: Promise<{ id: s
                                                                 <button
                                                                     key={member.id}
                                                                     onClick={() => toggleNomination(category.id, member.id)}
-                                                                    disabled={isChanging}
-                                                                    className={`flex items-center justify-between px-5 py-3 rounded-2xl border-2 transition-all text-left group ${isActive
-                                                                        ? 'bg-indigo-600 border-indigo-600 text-white shadow-lg shadow-indigo-100'
-                                                                        : 'bg-white border-gray-100 text-gray-700 hover:border-indigo-200 hover:bg-gray-50'
+                                                                    disabled={isChanging || meeting.isVotingOpen}
+                                                                    className={`flex items-center justify-between px-5 py-3 rounded-2xl border-2 transition-all text-left group ${meeting.isVotingOpen
+                                                                            ? 'opacity-60 cursor-not-allowed'
+                                                                            : isActive
+                                                                                ? 'bg-indigo-600 border-indigo-600 text-white shadow-lg shadow-indigo-100'
+                                                                                : 'bg-white border-gray-100 text-gray-700 hover:border-indigo-200 hover:bg-gray-50'
                                                                         }`}
                                                                 >
                                                                     <div className="flex flex-col">
