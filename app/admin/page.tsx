@@ -101,6 +101,25 @@ export default function AdminDashboard() {
                             </div>
                         </div>
                     </Link>
+
+                    {/* Add Member */}
+                    <Link href="/admin/members/add" className="block group">
+                        <div className="bg-white overflow-hidden shadow rounded-lg hover:shadow-xl transition-shadow duration-300 h-full">
+                            <div className="px-5 py-6">
+                                <div className="flex items-center">
+                                    <div className="flex-shrink-0 bg-green-500 rounded-md p-3">
+                                        <svg className="h-6 w-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z" />
+                                        </svg>
+                                    </div>
+                                    <div className="ml-5">
+                                        <h3 className="text-lg font-medium text-gray-900 group-hover:text-green-600">Add Member</h3>
+                                        <p className="mt-1 text-sm text-gray-500">Manually add new members to your club.</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </Link>
                 </div>
             </main>
         </div>
