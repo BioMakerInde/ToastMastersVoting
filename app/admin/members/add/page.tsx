@@ -136,8 +136,21 @@ export default function AddMemberPage() {
                 </div>
 
                 <div className="bg-white rounded-2xl shadow-xl p-8">
-                    <h1 className="text-3xl font-bold text-gray-900 mb-2">Add Member</h1>
-                    <p className="text-gray-600 mb-8">Manually add a new member to your club</p>
+                    <div className="flex items-center justify-between mb-6">
+                        <div>
+                            <h1 className="text-3xl font-bold text-gray-900 mb-2">Add Member</h1>
+                            <p className="text-gray-600">Manually add a new member to your club</p>
+                        </div>
+                        <Link
+                            href="/admin/members/bulk"
+                            className="inline-flex items-center px-4 py-2 border border-indigo-600 text-indigo-600 rounded-lg hover:bg-indigo-50 font-medium transition-colors"
+                        >
+                            <svg className="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                            </svg>
+                            Bulk Import
+                        </Link>
+                    </div>
 
                     {error && (
                         <div className="mb-6 bg-red-50 border-l-4 border-red-500 p-4 rounded-r-lg">
