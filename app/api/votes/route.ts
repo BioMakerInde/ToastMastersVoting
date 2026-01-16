@@ -22,7 +22,7 @@ function generateFingerprint(request: Request): string {
 export async function POST(request: Request) {
     try {
         const session = await getServerSession(authOptions)
-        const { meetingId, categoryId, nomineeId } = await request.json()
+        const { meetingId, categoryId, nomineeId, voterName } = await request.json()
 
         if (!meetingId || !categoryId || !nomineeId) {
             return NextResponse.json(
@@ -67,6 +67,7 @@ export async function POST(request: Request) {
                     voterId: voter.id,
                     nomineeId,
                     isAnonymous: false,
+                    voterName: voterName || null,
                 },
             })
 
@@ -88,6 +89,7 @@ export async function POST(request: Request) {
                 nomineeId,
                 isAnonymous: true,
                 voterFingerprint: fingerprint,
+                voterName: voterName || null,
             },
         })
 

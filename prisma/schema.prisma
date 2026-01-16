@@ -9,13 +9,16 @@ datasource db {
 }
 
 model User {
-  id        String   @id @default(cuid())
-  email     String   @unique
-  password  String
-  name      String
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-  members   Member[]
+  id         String   @id @default(cuid())
+  email      String   @unique
+  password   String
+  name       String
+  firstName  String?
+  secondName String?
+  phone      String?
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+  members    Member[]
 }
 
 model Club {
@@ -40,6 +43,8 @@ model Member {
   clubId           String
   role             MemberRole   @default(MEMBER)
   membershipNumber String?
+  pathway          String?
+  mentor           String?
   qrCode           String?      @unique
   isActive         Boolean      @default(true)
   joinedAt         DateTime     @default(now())
@@ -122,6 +127,7 @@ model Vote {
   nomineeId        String
   isAnonymous      Boolean        @default(false)
   voterFingerprint String?
+  voterName        String?
   createdAt        DateTime       @default(now())
   category         VotingCategory @relation(fields: [categoryId], references: [id], onDelete: Cascade)
   meeting          Meeting        @relation(fields: [meetingId], references: [id], onDelete: Cascade)

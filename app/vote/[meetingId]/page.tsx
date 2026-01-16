@@ -27,6 +27,7 @@ export default function VotingPage({ params }: { params: Promise<{ meetingId: st
     const [nominees, setNominees] = useState<Member[]>([]);
     const [meetingNominations, setMeetingNominations] = useState<any[]>([]);
     const [votes, setVotes] = useState<Record<string, string>>({}); // categoryId -> memberId
+    const [voterName, setVoterName] = useState('');
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [meetingData, setMeetingData] = useState<any>(null);
     const [error, setError] = useState('');
@@ -83,6 +84,12 @@ export default function VotingPage({ params }: { params: Promise<{ meetingId: st
     };
 
     const handleSubmit = async () => {
+        // Validate voter name
+        if (!voterName.trim()) {
+            setError('Please enter your name before submitting votes.');
+            return;
+        }
+
         const votedCount = Object.keys(votes).length;
         if (votedCount < categories.length && categories.length > 0) {
             if (!confirm(`You've only voted in ${votedCount} out of ${categories.length} categories. Submit anyway?`)) return;
@@ -102,7 +109,8 @@ export default function VotingPage({ params }: { params: Promise<{ meetingId: st
                     body: JSON.stringify({
                         meetingId,
                         categoryId,
-                        nomineeId
+                        nomineeId,
+                        voterName: voterName.trim()
                     })
                 });
                 if (res.ok) successCount++;
@@ -111,7 +119,7 @@ export default function VotingPage({ params }: { params: Promise<{ meetingId: st
             if (successCount > 0) {
                 setSuccess(true);
             } else {
-                setError('Failed to submit votes. You might have already voted or there was a server error.');
+                setError('Failed to submit votes. Please try again.');
             }
         } catch (e) {
             setError('Failed to submit votes. Please check your connection.');
@@ -171,6 +179,22 @@ export default function VotingPage({ params }: { params: Promise<{ meetingId: st
                         </div>
                     </div>
                 )}
+
+                {/* Voter Name Input */}
+                <div className="bg-white shadow-lg rounded-2xl border border-white p-8 mb-6">
+                    <label htmlFor="voterName" className="block text-sm font-bold text-gray-700 mb-3">
+                        Your Name <span className="text-red-500">*</span>
+                    </label>
+                    <input
+                        id="voterName"
+                        type="text"
+                        value={voterName}
+                        onChange={(e) => setVoterName(e.target.value)}
+                        placeholder="Enter your full name"
+                        required
+                        className="block w-full px-5 py-4 text-gray-700 bg-gray-50 border border-gray-100 focus:bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all duration-200 text-lg rounded-xl"
+                    />
+                </div>
 
                 <div className="space-y-6">
                     {categories.length === 0 ? (
