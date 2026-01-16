@@ -39,6 +39,7 @@ export default function AddMemberPage() {
                 // Auto-select first club if only one
                 if (data.clubs?.length === 1) {
                     setFormData(prev => ({ ...prev, clubId: data.clubs[0].id }));
+                    await generateMembershipId(data.clubs[0].id);
                 }
             }
         } catch (e) {
@@ -46,9 +47,29 @@ export default function AddMemberPage() {
         }
     };
 
+    const generateMembershipId = async (clubId: string) => {
+        try {
+            const res = await fetch(`/api/clubs/${clubId}/members`);
+            if (res.ok) {
+                const members = await res.json();
+                // Generate next sequential number
+                const nextNumber = members.length + 1;
+                const membershipId = `TM${String(nextNumber).padStart(5, '0')}`;
+                setFormData(prev => ({ ...prev, membershipNumber: membershipId }));
+            }
+        } catch (e) {
+            console.error('Failed to generate membership ID');
+        }
+    };
+
     const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
         const { name, value } = e.target;
         setFormData(prev => ({ ...prev, [name]: value }));
+
+        // Generate membership ID when club is selected
+        if (name === 'clubId' && value) {
+            generateMembershipId(value);
+        }
 
         // Auto-generate full name from first and second name
         if (name === 'firstName' || name === 'secondName') {
@@ -149,20 +170,25 @@ export default function AddMemberPage() {
                                     </option>
                                 ))}
                             </select>
+                            {formData.clubId && (
+                                <p className="mt-2 text-sm text-gray-600">
+                                    Selected: <span className="font-bold">{clubs.find(c => c.id === formData.clubId)?.name}</span>
+                                </p>
+                            )}
                         </div>
 
-                        {/* Membership ID */}
+                        {/* Membership ID - Auto-generated */}
                         <div>
                             <label className="block text-sm font-bold text-gray-700 mb-2">
-                                Membership ID
+                                Membership ID <span className="text-gray-400">(Auto-generated)</span>
                             </label>
                             <input
                                 type="text"
                                 name="membershipNumber"
                                 value={formData.membershipNumber}
-                                onChange={handleChange}
-                                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
-                                placeholder="e.g., TM12345"
+                                readOnly
+                                className="w-full px-4 py-3 border border-gray-200 rounded-lg bg-gray-50 text-gray-600 cursor-not-allowed"
+                                placeholder="Select a club first"
                             />
                         </div>
 
