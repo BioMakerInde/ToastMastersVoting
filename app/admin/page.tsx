@@ -120,6 +120,25 @@ export default function AdminDashboard() {
                             </div>
                         </div>
                     </Link>
+
+                    {/* Manage Members */}
+                    <Link href="/admin/members" className="block group">
+                        <div className="bg-white overflow-hidden shadow rounded-lg hover:shadow-xl transition-shadow duration-300 h-full">
+                            <div className="px-5 py-6">
+                                <div className="flex items-center">
+                                    <div className="flex-shrink-0 bg-teal-500 rounded-md p-3">
+                                        <svg className="h-6 w-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+                                        </svg>
+                                    </div>
+                                    <div className="ml-5">
+                                        <h3 className="text-lg font-medium text-gray-900 group-hover:text-teal-600">Manage Members</h3>
+                                        <p className="mt-1 text-sm text-gray-500">View, edit, and manage all club members.</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </Link>
                 </div>
             </main>
         </div>
