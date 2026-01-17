@@ -356,10 +356,10 @@ export default function MeetingDetailsPage({ params }: { params: Promise<{ id: s
                                                             onClick={() => toggleCategory(category.id)}
                                                             disabled={isToggling || meeting.isVotingOpen}
                                                             className={`w-12 h-6 rounded-full relative transition-colors duration-200 ${meeting.isVotingOpen
-                                                                    ? 'bg-gray-300 cursor-not-allowed'
-                                                                    : isEnabled
-                                                                        ? 'bg-indigo-600'
-                                                                        : 'bg-gray-200'
+                                                                ? 'bg-gray-300 cursor-not-allowed'
+                                                                : isEnabled
+                                                                    ? 'bg-indigo-600'
+                                                                    : 'bg-gray-200'
                                                                 } ${isToggling ? 'opacity-50 cursor-wait' : !meeting.isVotingOpen ? 'cursor-pointer' : ''}`}
                                                         >
                                                             <div className={`absolute top-1 left-1 bg-white w-4 h-4 rounded-full transition-transform duration-200 ${isEnabled ? 'translate-x-6' : 'translate-x-0'} flex items-center justify-center`}>
@@ -379,41 +379,73 @@ export default function MeetingDetailsPage({ params }: { params: Promise<{ id: s
                                                 </div>
 
                                                 {isEnabled && (
-                                                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 animate-in fade-in slide-in-from-top-2 duration-300">
-                                                        {clubMembers.map((member) => {
-                                                            const isActive = isNominated(category.id, member.id);
-                                                            const isChanging = nominating === `${category.id}-${member.id}`;
+                                                    <div className="animate-in fade-in slide-in-from-top-2 duration-300">
+                                                        <div className="relative">
+                                                            <label className="block text-sm font-bold text-gray-700 mb-2">
+                                                                Select Nominees
+                                                            </label>
+                                                            <select
+                                                                multiple
+                                                                disabled={meeting.isVotingOpen}
+                                                                className={`w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all ${meeting.isVotingOpen ? 'opacity-60 cursor-not-allowed bg-gray-50' : 'bg-white'
+                                                                    }`}
+                                                                size={Math.min(clubMembers.length, 8)}
+                                                                onChange={(e) => {
+                                                                    const selectedOptions = Array.from(e.target.selectedOptions);
+                                                                    const selectedIds = selectedOptions.map(opt => opt.value);
 
-                                                            return (
-                                                                <button
-                                                                    key={member.id}
-                                                                    onClick={() => toggleNomination(category.id, member.id)}
-                                                                    disabled={isChanging || meeting.isVotingOpen}
-                                                                    className={`flex items-center justify-between px-5 py-3 rounded-2xl border-2 transition-all text-left group ${meeting.isVotingOpen
-                                                                        ? 'opacity-60 cursor-not-allowed'
-                                                                        : isActive
-                                                                            ? 'bg-indigo-600 border-indigo-600 text-white shadow-lg shadow-indigo-100'
-                                                                            : 'bg-white border-gray-100 text-gray-700 hover:border-indigo-200 hover:bg-gray-50'
-                                                                        }`}
-                                                                >
-                                                                    <div className="flex flex-col">
-                                                                        <span className="text-sm font-black tracking-tight">{member.user.name}</span>
-                                                                        <span className={`text-[10px] font-bold uppercase tracking-wider ${isActive ? 'text-indigo-200' : 'text-gray-400'}`}>
-                                                                            {member.role}
-                                                                        </span>
-                                                                    </div>
-                                                                    {isChanging ? (
-                                                                        <div className={`w-4 h-4 border-2 ${isActive ? 'border-white' : 'border-indigo-600'} border-t-transparent rounded-full animate-spin`}></div>
-                                                                    ) : isActive ? (
-                                                                        <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
-                                                                            <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
-                                                                        </svg>
-                                                                    ) : (
-                                                                        <div className="w-5 h-5 rounded-full border-2 border-gray-200 group-hover:border-indigo-300 transition-colors"></div>
-                                                                    )}
-                                                                </button>
-                                                            );
-                                                        })}
+                                                                    // Toggle each selected member
+                                                                    selectedIds.forEach(memberId => {
+                                                                        const isCurrentlyNominated = isNominated(category.id, memberId);
+                                                                        if (!isCurrentlyNominated) {
+                                                                            toggleNomination(category.id, memberId);
+                                                                        }
+                                                                    });
+                                                                }}
+                                                            >
+                                                                {clubMembers.map((member) => {
+                                                                    const isActive = isNominated(category.id, member.id);
+                                                                    return (
+                                                                        <option
+                                                                            key={member.id}
+                                                                            value={member.id}
+                                                                            className={`py-3 px-4 cursor-pointer hover:bg-indigo-50 ${isActive ? 'bg-indigo-100 font-bold' : ''
+                                                                                }`}
+                                                                            onClick={() => toggleNomination(category.id, member.id)}
+                                                                        >
+                                                                            {isActive ? '✓ ' : ''}{member.user.name} ({member.role})
+                                                                        </option>
+                                                                    );
+                                                                })}
+                                                            </select>
+                                                            <p className="text-xs text-gray-500 mt-2">
+                                                                Click to select/unselect nominees. Selected members show with ✓
+                                                            </p>
+                                                        </div>
+
+                                                        {/* Selected count badge */}
+                                                        <div className="mt-4 flex flex-wrap gap-2">
+                                                            {clubMembers
+                                                                .filter(member => isNominated(category.id, member.id))
+                                                                .map(member => (
+                                                                    <span
+                                                                        key={member.id}
+                                                                        className="inline-flex items-center gap-2 px-3 py-1 bg-indigo-100 text-indigo-700 rounded-full text-sm font-medium"
+                                                                    >
+                                                                        {member.user.name}
+                                                                        {!meeting.isVotingOpen && (
+                                                                            <button
+                                                                                onClick={() => toggleNomination(category.id, member.id)}
+                                                                                className="hover:bg-indigo-200 rounded-full p-0.5 transition-colors"
+                                                                            >
+                                                                                <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
+                                                                                    <path fillRule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clipRule="evenodd" />
+                                                                                </svg>
+                                                                            </button>
+                                                                        )}
+                                                                    </span>
+                                                                ))}
+                                                        </div>
                                                     </div>
                                                 )}
                                             </div>
