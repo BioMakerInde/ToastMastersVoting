@@ -66,6 +66,8 @@ model Meeting {
   votingStartTime DateTime?
   votingEndTime   DateTime?
   isVotingOpen    Boolean           @default(false)
+  isFinalized     Boolean           @default(false)
+  finalizedAt     DateTime?
   createdAt       DateTime          @default(now())
   updatedAt       DateTime          @updatedAt
   club            Club              @relation(fields: [clubId], references: [id], onDelete: Cascade)

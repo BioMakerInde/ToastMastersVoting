@@ -180,6 +180,28 @@ export default function VotingPage({ params }: { params: Promise<{ meetingId: st
                     </div>
                 )}
 
+                {/* Meeting Date Display */}
+                {meetingData?.meetingDate && (
+                    <div className="bg-indigo-50 border border-indigo-200 p-4 mb-6 rounded-xl flex items-center gap-3">
+                        <svg className="h-5 w-5 text-indigo-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                        </svg>
+                        <div>
+                            <p className="text-sm font-bold text-indigo-900">
+                                Meeting on {new Date(meetingData.meetingDate).toLocaleDateString('en-US', {
+                                    weekday: 'long',
+                                    year: 'numeric',
+                                    month: 'long',
+                                    day: 'numeric'
+                                })}
+                            </p>
+                            {meetingData.title && (
+                                <p className="text-xs text-indigo-700 mt-0.5">{meetingData.title}</p>
+                            )}
+                        </div>
+                    </div>
+                )}
+
                 {/* Voter Name Input */}
                 <div className="bg-white shadow-lg rounded-2xl border border-white p-8 mb-6">
                     <label htmlFor="voterName" className="block text-sm font-bold text-gray-700 mb-3">

@@ -175,6 +175,13 @@ export default function MeetingDetailsPage({ params }: { params: Promise<{ id: s
 
     const toggleVoting = async () => {
         if (!meeting) return;
+
+        // Prevent enabling if finalized
+        if (meeting.isFinalized && !meeting.isVotingOpen) {
+            alert('This meeting has been finalized. Voting cannot be re-enabled.');
+            return;
+        }
+
         try {
             const res = await fetch(`/api/meetings`, {
                 method: 'PUT',
@@ -193,6 +200,33 @@ export default function MeetingDetailsPage({ params }: { params: Promise<{ id: s
             }
         } catch (error) {
             console.error('Failed to toggle voting');
+        }
+    };
+
+    const finalizeVoting = async () => {
+        if (!meeting) return;
+
+        if (!confirm('Are you sure you want to finalize this meeting? This will permanently end voting and announce results. This action cannot be undone.')) {
+            return;
+        }
+
+        try {
+            const res = await fetch(`/api/meetings/${meeting.id}/finalize`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' }
+            });
+
+            if (res.ok) {
+                const data = await res.json();
+                setMeeting(data);
+                alert('Meeting finalized successfully! Results are now announced.');
+            } else {
+                const data = await res.json();
+                alert(data.error || 'Failed to finalize');
+            }
+        } catch (error) {
+            console.error('Failed to finalize meeting');
+            alert('Connection error');
         }
     };
 
@@ -244,14 +278,32 @@ export default function MeetingDetailsPage({ params }: { params: Promise<{ id: s
                         >
                             📊 View Results
                         </Link>
-                        {meeting.isVotingOpen ? (
-                            <button
-                                onClick={toggleVoting}
-                                className="bg-red-500 hover:bg-red-600 text-white px-8 py-3 rounded-2xl font-black transition-all shadow-xl active:scale-95 flex items-center gap-2"
-                            >
-                                <span className="w-2 h-2 rounded-full bg-white animate-pulse"></span>
-                                End Voting
-                            </button>
+                        {meeting.isFinalized ? (
+                            <div className="bg-purple-500 text-white px-8 py-3 rounded-2xl font-black flex items-center gap-2">
+                                <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                                    <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                                </svg>
+                                Results Announced
+                            </div>
+                        ) : meeting.isVotingOpen ? (
+                            <>
+                                <button
+                                    onClick={toggleVoting}
+                                    className="bg-red-500 hover:bg-red-600 text-white px-8 py-3 rounded-2xl font-black transition-all shadow-xl active:scale-95 flex items-center gap-2"
+                                >
+                                    <span className="w-2 h-2 rounded-full bg-white animate-pulse"></span>
+                                    End Voting
+                                </button>
+                                <button
+                                    onClick={finalizeVoting}
+                                    className="bg-purple-600 hover:bg-purple-700 text-white px-8 py-3 rounded-2xl font-black transition-all shadow-xl active:scale-95 flex items-center gap-2"
+                                >
+                                    <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                                        <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                                    </svg>
+                                    Finalize & Announce
+                                </button>
+                            </>
                         ) : (
                             <button
                                 onClick={toggleVoting}
