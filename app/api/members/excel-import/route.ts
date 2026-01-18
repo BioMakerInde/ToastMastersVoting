@@ -114,18 +114,17 @@ export async function POST(request: Request) {
                     }
 
                     // Create member record
-                    await prisma.member.create({
+                    const newMember = await prisma.member.create({
                         data: {
                             userId: user.id,
                             clubId: clubId,
                             membershipNumber: finalMembershipNumber,
-                            pathway: pathway || null,
-                            mentor: null,
                             role: role,
                             status: 'ACTIVE',
                             isActive: true
                         }
                     });
+                    console.log('✅ Member created:', newMember.id, newMember.membershipNumber);
                     imported++;
                     if (!membershipNumber) {
                         currentMemberNumber++; // Only increment if we auto-generated
