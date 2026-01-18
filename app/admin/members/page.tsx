@@ -127,7 +127,16 @@ export default function ManageMembersPage() {
                             href="/admin/members/bulk"
                             className="inline-flex items-center px-4 py-2 border border-indigo-600 text-indigo-600 rounded-lg hover:bg-indigo-50 font-medium"
                         >
-                            Bulk Import
+                            Text Import
+                        </Link>
+                        <Link
+                            href="/admin/members/excel"
+                            className="inline-flex items-center px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 font-medium"
+                        >
+                            <svg className="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                            </svg>
+                            Excel Import
                         </Link>
                     </div>
                 </div>
@@ -214,8 +223,8 @@ export default function ManageMembersPage() {
                                                 </td>
                                                 <td className="px-6 py-4 whitespace-nowrap">
                                                     <span className={`px-2 py-1 text-xs font-bold rounded-full ${member.role === 'ADMIN' ? 'bg-purple-100 text-purple-700' :
-                                                            member.role === 'OFFICER' ? 'bg-blue-100 text-blue-700' :
-                                                                'bg-gray-100 text-gray-700'
+                                                        member.role === 'OFFICER' ? 'bg-blue-100 text-blue-700' :
+                                                            'bg-gray-100 text-gray-700'
                                                         }`}>
                                                         {member.role}
                                                     </span>
@@ -227,8 +236,8 @@ export default function ManageMembersPage() {
                                                     <button
                                                         onClick={() => toggleMemberStatus(member.id, member.isActive)}
                                                         className={`px-3 py-1 text-xs font-bold rounded-full transition-colors ${member.isActive
-                                                                ? 'bg-green-100 text-green-700 hover:bg-green-200'
-                                                                : 'bg-red-100 text-red-700 hover:bg-red-200'
+                                                            ? 'bg-green-100 text-green-700 hover:bg-green-200'
+                                                            : 'bg-red-100 text-red-700 hover:bg-red-200'
                                                             }`}
                                                     >
                                                         {member.isActive ? 'Active' : 'Disabled'}
