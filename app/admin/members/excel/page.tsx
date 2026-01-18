@@ -284,18 +284,32 @@ export default function ExcelImportPage() {
                                         <th className="px-4 py-3 text-left text-xs font-bold text-gray-700 uppercase">Phone</th>
                                         <th className="px-4 py-3 text-left text-xs font-bold text-gray-700 uppercase">Member ID</th>
                                         <th className="px-4 py-3 text-left text-xs font-bold text-gray-700 uppercase">Pathway</th>
+                                        <th className="px-4 py-3 text-left text-xs font-bold text-gray-700 uppercase">Address</th>
+                                        <th className="px-4 py-3 text-left text-xs font-bold text-gray-700 uppercase">City</th>
+                                        <th className="px-4 py-3 text-left text-xs font-bold text-gray-700 uppercase">State</th>
+                                        <th className="px-4 py-3 text-left text-xs font-bold text-gray-700 uppercase">Country</th>
+                                        <th className="px-4 py-3 text-left text-xs font-bold text-gray-700 uppercase">Paid Until</th>
+                                        <th className="px-4 py-3 text-left text-xs font-bold text-gray-700 uppercase">Member Since</th>
+                                        <th className="px-4 py-3 text-left text-xs font-bold text-gray-700 uppercase">Position</th>
                                         <th className="px-4 py-3 text-left text-xs font-bold text-gray-700 uppercase">Status</th>
                                     </tr>
                                 </thead>
                                 <tbody className="bg-white divide-y divide-gray-200">
                                     {parsedMembers.map((member, index) => (
                                         <tr key={index} className={member.error ? 'bg-red-50' : ''}>
-                                            <td className="px-4 py-3 text-sm text-gray-900">{member.name || '-'}</td>
-                                            <td className="px-4 py-3 text-sm text-gray-600">{member.email || '-'}</td>
-                                            <td className="px-4 py-3 text-sm text-gray-600">{member.phone || '-'}</td>
-                                            <td className="px-4 py-3 text-sm font-mono text-gray-900">{member.membershipNumber || '-'}</td>
-                                            <td className="px-4 py-3 text-sm text-gray-600">{member.pathway || '-'}</td>
-                                            <td className="px-4 py-3 text-sm">
+                                            <td className="px-4 py-3 text-sm text-gray-900 whitespace-nowrap">{member.name || '-'}</td>
+                                            <td className="px-4 py-3 text-sm text-gray-600 whitespace-nowrap">{member.email || '-'}</td>
+                                            <td className="px-4 py-3 text-sm text-gray-600 whitespace-nowrap">{member.phone || '-'}</td>
+                                            <td className="px-4 py-3 text-sm font-mono text-gray-900 whitespace-nowrap">{member.membershipNumber || 'Auto'}</td>
+                                            <td className="px-4 py-3 text-sm text-gray-600 whitespace-nowrap">{member.pathway || '-'}</td>
+                                            <td className="px-4 py-3 text-sm text-gray-600 max-w-xs truncate">{member.address || '-'}</td>
+                                            <td className="px-4 py-3 text-sm text-gray-600 whitespace-nowrap">{member.city || '-'}</td>
+                                            <td className="px-4 py-3 text-sm text-gray-600 whitespace-nowrap">{member.state || '-'}</td>
+                                            <td className="px-4 py-3 text-sm text-gray-600 whitespace-nowrap">{member.country || '-'}</td>
+                                            <td className="px-4 py-3 text-sm text-gray-600 whitespace-nowrap">{member.paidUntil || '-'}</td>
+                                            <td className="px-4 py-3 text-sm text-gray-600 whitespace-nowrap">{member.memberSince || '-'}</td>
+                                            <td className="px-4 py-3 text-sm text-gray-600 whitespace-nowrap">{member.currentPosition || '-'}</td>
+                                            <td className="px-4 py-3 text-sm whitespace-nowrap">
                                                 {member.error ? (
                                                     <span className="text-red-600 font-medium">{member.error}</span>
                                                 ) : (
