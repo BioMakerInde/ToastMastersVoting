@@ -148,17 +148,21 @@ export default function ExcelImportPage() {
             if (res.ok) {
                 setSuccess(`Successfully imported ${data.imported} members!`);
                 if (data.errors && data.errors.length > 0) {
-                    setError(`Errors: ${data.errors.join(', ')}`);
+                    setError(`Some errors occurred:\n${data.errors.join('\n')}`);
+                    // Don't redirect if there are errors - let user see them
+                } else {
+                    // Only redirect if completely successful
+                    setTimeout(() => {
+                        router.push('/admin/members');
+                    }, 3000);
                 }
-                // Reset after 2 seconds
-                setTimeout(() => {
-                    router.push('/admin/members');
-                }, 2000);
             } else {
                 setError(data.error || 'Import failed');
+                console.error('Import failed:', data);
             }
         } catch (err) {
-            setError('Connection error');
+            setError('Connection error - check console for details');
+            console.error('Import error:', err);
         } finally {
             setImporting(false);
         }
