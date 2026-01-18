@@ -91,12 +91,11 @@ export async function POST(request: Request) {
 
                 if (!user) {
                     console.log('Creating new user...');
-                    // Create new user
+                    // Create new user - simplified to only required fields
                     user = await prisma.user.create({
                         data: {
                             email: email.toLowerCase().trim(),
                             name: fullName,
-                            phone: phone || null,
                             password: defaultPassword
                         }
                     });
