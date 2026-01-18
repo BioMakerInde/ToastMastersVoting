@@ -83,15 +83,15 @@ export default function ExcelImportPage() {
             jsonData.forEach((row: any, index) => {
                 const member: ParsedMember = {
                     name: row['Name'] || '',
-                    email: row['Email'] || row['E-mail'] || '',
-                    phone: row['Mobile Phone'] || row['Home Phone'] || '',
-                    membershipNumber: row['Member ID'] || '',
+                    email: row['Member E-mail'] || row['Email'] || '',
+                    phone: row['Home Phone'] || row['Mobile Phone'] || '',
+                    membershipNumber: row['Addr L1'] || row['Member ID'] || '',
                     pathway: row['Pathways Enrolled'] || '',
                     address: [row['Addr L1'], row['Addr L2']].filter(Boolean).join(', '),
                     city: row['City'] || '',
-                    state: row['State/Province'] || '',
-                    country: row['Country'] || '',
-                    zipCode: row['Zip-code'] || '',
+                    state: row['State/Prov/Country'] || row['State'] || '',
+                    country: row['State/Prov/Country'] || row['Country'] || '',
+                    zipCode: row['Zip-code'] || row['zip-code'] || '',
                     paidUntil: row['Paid Until'] || '',
                     memberSince: row['Member of Club Since'] || '',
                     status: row['Status (*)'] || '',
@@ -210,6 +210,7 @@ export default function ExcelImportPage() {
                                     <span>Upload a file</span>
                                     <input
                                         type="file"
+                                        name="excelFile"
                                         accept=".xlsx,.xls,.csv"
                                         onChange={handleFileChange}
                                         className="sr-only"
@@ -229,9 +230,12 @@ export default function ExcelImportPage() {
                     <div className="mt-4 bg-blue-50 border border-blue-200 rounded-lg p-4">
                         <h3 className="font-bold text-blue-900 mb-2">Expected Columns:</h3>
                         <p className="text-xs text-blue-800">
-                            Name, Email, Mobile Phone, Member ID, Pathways Enrolled, Addr L1, Addr L2,
-                            City, State/Province, Country, Zip-code, Paid Until, Member of Club Since,
-                            Status (*), Current Position
+                            Name, Member E-mail, Home Phone, Mobile Phone, Addr L1, Addr L2,
+                            City, State/Prov/Country, Zip-code, Paid Until, Member of Club Since,
+                            Current Position, Pathways Enrolled
+                        </p>
+                        <p className="text-xs text-blue-700 mt-2">
+                            <strong>Minimum required:</strong> Name and Member E-mail
                         </p>
                     </div>
 
