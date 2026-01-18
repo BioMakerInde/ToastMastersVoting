@@ -39,7 +39,7 @@ export async function GET(request: Request) {
                 status: m.status,
                 isActive: m.isActive,
                 role: m.role,
-                createdAt: m.createdAt,
+                joinedAt: m.joinedAt,
                 user: {
                     name: m.user.name,
                     email: m.user.email
