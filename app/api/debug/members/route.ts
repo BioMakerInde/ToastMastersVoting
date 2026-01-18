@@ -19,7 +19,7 @@ export async function GET(request: Request) {
                 user: true
             },
             orderBy: {
-                createdAt: 'desc'
+                joinedAt: 'desc'
             }
         });
 
