@@ -214,10 +214,10 @@ export default function SessionsPage() {
                         ) : (
                             meetings.map((meeting) => (
                                 <div key={meeting.id} className={`group p-6 sm:p-8 transition-all flex flex-col sm:flex-row items-start sm:items-center gap-6 ${meeting.isFinalized
-                                        ? 'bg-blue-50/30 hover:bg-blue-50/50 border-l-4 border-blue-400'
-                                        : meeting.isVotingOpen
-                                            ? 'bg-green-50/30 hover:bg-green-50/50 border-l-4 border-green-400'
-                                            : 'hover:bg-gray-50/50'
+                                    ? 'bg-blue-50/30 hover:bg-blue-50/50 border-l-4 border-blue-400'
+                                    : meeting.isVotingOpen
+                                        ? 'bg-green-50/30 hover:bg-green-50/50 border-l-4 border-green-400'
+                                        : 'hover:bg-gray-50/50'
                                     }`}>
                                     {/* Date Visual */}
                                     <div className="w-16 h-16 bg-white border border-gray-100 shadow-sm rounded-2xl flex flex-col items-center justify-center flex-shrink-0 group-hover:scale-105 transition-transform duration-300">
@@ -235,7 +235,7 @@ export default function SessionsPage() {
                                             <h3 className="text-xl font-bold text-gray-900 truncate">
                                                 {meeting.title}
                                             </h3>
-                                            {meeting.isFinalized ? (
+                                            {(meeting as any).isFinalized ? (
                                                 <span className="flex items-center gap-1.5 px-2.5 py-1 bg-blue-50 text-blue-700 text-[10px] font-black uppercase tracking-widest rounded-full border border-blue-200">
                                                     <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
                                                         <path fillRule="evenodd" d="M6.267 3.455a3.066 3.066 0 001.745-.723 3.066 3.066 0 013.976 0 3.066 3.066 0 001.745.723 3.066 3.066 0 012.812 2.812c.051.643.304 1.254.723 1.745a3.066 3.066 0 010 3.976 3.066 3.066 0 00-.723 1.745 3.066 3.066 0 01-2.812 2.812 3.066 3.066 0 00-1.745.723 3.066 3.066 0 01-3.976 0 3.066 3.066 0 00-1.745-.723 3.066 3.066 0 01-2.812-2.812 3.066 3.066 0 00-.723-1.745 3.066 3.066 0 010-3.976 3.066 3.066 0 00.723-1.745 3.066 3.066 0 012.812-2.812zm7.44 5.252a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
@@ -247,7 +247,7 @@ export default function SessionsPage() {
                                                     <span className="w-1.5 h-1.5 bg-green-500 rounded-full"></span>
                                                     Polling Live
                                                 </span>
-                                            ) : meeting.votingEndTime ? (
+                                            ) : (meeting as any).votingEndTime ? (
                                                 <span className="flex items-center gap-1.5 px-2.5 py-1 bg-gray-100 text-gray-600 text-[10px] font-black uppercase tracking-widest rounded-full">
                                                     <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
