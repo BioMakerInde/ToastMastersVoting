@@ -213,7 +213,7 @@ export default function SessionsPage() {
                             </div>
                         ) : (
                             meetings.map((meeting) => (
-                                <div key={meeting.id} className={`group p-6 sm:p-8 transition-all flex flex-col sm:flex-row items-start sm:items-center gap-6 ${meeting.isFinalized
+                                <div key={meeting.id} className={`group p-6 sm:p-8 transition-all flex flex-col sm:flex-row items-start sm:items-center gap-6 ${(meeting as any).isFinalized
                                     ? 'bg-blue-50/30 hover:bg-blue-50/50 border-l-4 border-blue-400'
                                     : meeting.isVotingOpen
                                         ? 'bg-green-50/30 hover:bg-green-50/50 border-l-4 border-green-400'
