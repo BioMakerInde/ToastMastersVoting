@@ -475,16 +475,16 @@ export default function MeetingDetailsPage({ params }: { params: Promise<{ id: s
                                                             </p>
                                                         </div>
 
-                                                        {/* Selected count badge */}
+                                                        {/* Selected nominees with sequence numbers */}
                                                         <div className="mt-4 flex flex-wrap gap-2">
                                                             {clubMembers
                                                                 .filter(member => isNominated(category.id, member.id))
-                                                                .map(member => (
+                                                                .map((member, index) => (
                                                                     <span
                                                                         key={member.id}
                                                                         className="inline-flex items-center gap-2 px-3 py-1 bg-indigo-100 text-indigo-700 rounded-full text-sm font-medium"
                                                                     >
-                                                                        {member.user.name}
+                                                                        <span className="font-bold">{index + 1}.</span> {member.user.name}
                                                                         {!meeting.isVotingOpen && (
                                                                             <button
                                                                                 onClick={() => toggleNomination(category.id, member.id)}

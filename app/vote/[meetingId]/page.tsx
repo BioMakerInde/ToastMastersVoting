@@ -252,15 +252,15 @@ export default function VotingPage({ params }: { params: Promise<{ meetingId: st
                                             const categoryNominees = meetingNominations.filter(n => n.categoryId === category.id);
 
                                             if (categoryNominees.length > 0) {
-                                                return categoryNominees.map((n) => (
+                                                return categoryNominees.map((n, index) => (
                                                     <option key={n.memberId} value={n.memberId}>
-                                                        {n.member.user.name}
+                                                        {index + 1}. {n.member.user.name}
                                                     </option>
                                                 ));
                                             } else {
-                                                return nominees.map((nominee) => (
+                                                return nominees.map((nominee, index) => (
                                                     <option key={nominee.id} value={nominee.id}>
-                                                        {nominee.user.name}
+                                                        {index + 1}. {nominee.user.name}
                                                     </option>
                                                 ));
                                             }
