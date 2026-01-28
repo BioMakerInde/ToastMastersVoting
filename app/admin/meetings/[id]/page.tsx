@@ -27,6 +27,8 @@ export default function MeetingDetailsPage({ params }: { params: Promise<{ id: s
     const [pendingNominations, setPendingNominations] = useState<Set<string>>(new Set());
     const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
     const [isSaving, setIsSaving] = useState(false);
+    const [guestNames, setGuestNames] = useState<string[]>([]);
+    const [guestInput, setGuestInput] = useState('');
 
     useEffect(() => {
         setMounted(true);
@@ -59,6 +61,10 @@ export default function MeetingDetailsPage({ params }: { params: Promise<{ id: s
                 setMeeting(data);
                 if (data.categories) {
                     setEnabledCategoryIds(new Set(data.categories.map((c: any) => c.categoryId)));
+                }
+                // Load guest names from meeting
+                if (data.guestNames) {
+                    setGuestNames(data.guestNames);
                 }
                 if (data.clubId) {
                     fetchClubData(data.clubId);
@@ -147,6 +153,58 @@ export default function MeetingDetailsPage({ params }: { params: Promise<{ id: s
         // Check saved nominations
         return meeting?.nominations?.some((n: any) => n.categoryId === categoryId && n.memberId === memberId);
     };
+
+    const addGuest = async () => {
+        const guestName = guestInput.trim();
+        if (!guestName) return;
+
+        if (guestNames.includes(guestName)) {
+            alert('This guest is already added');
+            return;
+        }
+
+        const newGuests = [...guestNames, guestName];
+
+        try {
+            const res = await fetch(`/api/meetings`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ id, guestNames: newGuests })
+            });
+
+            if (res.ok) {
+                setGuestNames(newGuests);
+                setGuestInput('');
+            } else {
+                const data = await res.json();
+                alert(data.error || 'Failed to add guest');
+            }
+        } catch (e) {
+            alert('Connection error');
+        }
+    };
+
+    const removeGuest = async (guestName: string) => {
+        const newGuests = guestNames.filter(g => g !== guestName);
+
+        try {
+            const res = await fetch(`/api/meetings`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ id, guestNames: newGuests })
+            });
+
+            if (res.ok) {
+                setGuestNames(newGuests);
+            } else {
+                const data = await res.json();
+                alert(data.error || 'Failed to remove guest');
+            }
+        } catch (e) {
+            alert('Connection error');
+        }
+    };
+
 
     const toggleCategory = async (categoryId: string) => {
         setTogglingCategory(categoryId);
@@ -344,6 +402,71 @@ export default function MeetingDetailsPage({ params }: { params: Promise<{ id: s
                                     </div>
                                 </div>
                             </div>
+                        </div>
+
+                        {/* Guest Participants Section */}
+                        <div className="bg-white rounded-[2rem] shadow-xl shadow-gray-200/50 border border-gray-100 p-8 space-y-4">
+                            <div className="flex items-center justify-between">
+                                <h3 className="text-xs font-black uppercase tracking-widest text-gray-400">Guest Participants</h3>
+                                <span className="text-[10px] font-black uppercase tracking-widest text-amber-600 bg-amber-50 px-2 py-1 rounded-full">
+                                    {guestNames.length} Guests
+                                </span>
+                            </div>
+
+                            {/* Guest List */}
+                            <div className="flex flex-wrap gap-2">
+                                {guestNames.map((guest, index) => (
+                                    <span
+                                        key={`guest-${guest}`}
+                                        className="inline-flex items-center gap-2 px-3 py-1.5 bg-amber-100 text-amber-700 rounded-full text-sm font-medium"
+                                    >
+                                        <span className="font-bold">{index + 1}.</span> {guest}
+                                        {!meeting.isVotingOpen && (
+                                            <button
+                                                onClick={() => removeGuest(guest)}
+                                                className="hover:bg-amber-200 rounded-full p-0.5 transition-colors"
+                                            >
+                                                <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
+                                                    <path fillRule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clipRule="evenodd" />
+                                                </svg>
+                                            </button>
+                                        )}
+                                    </span>
+                                ))}
+                                {guestNames.length === 0 && (
+                                    <p className="text-sm text-gray-400">No guests added yet</p>
+                                )}
+                            </div>
+
+                            {/* Add Guest Input */}
+                            {!meeting.isVotingOpen && (
+                                <div className="pt-2">
+                                    <div className="flex gap-2">
+                                        <input
+                                            type="text"
+                                            placeholder="Enter guest name..."
+                                            value={guestInput}
+                                            onChange={(e) => setGuestInput(e.target.value)}
+                                            onKeyDown={(e) => e.key === 'Enter' && addGuest()}
+                                            className="flex-1 px-4 py-2 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-amber-500 focus:border-amber-500 transition-all text-sm"
+                                        />
+                                        <button
+                                            onClick={addGuest}
+                                            className="px-4 py-2 bg-amber-500 text-white rounded-xl font-bold hover:bg-amber-600 transition-colors text-sm"
+                                        >
+                                            + Add
+                                        </button>
+                                    </div>
+                                    <p className="text-xs text-gray-500 mt-2">
+                                        Guests will appear in all voting categories
+                                    </p>
+                                </div>
+                            )}
+                            {meeting.isVotingOpen && (
+                                <p className="text-xs text-amber-600 italic">
+                                    End voting to modify guests
+                                </p>
+                            )}
                         </div>
                     </div>
 

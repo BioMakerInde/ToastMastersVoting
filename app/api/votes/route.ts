@@ -22,11 +22,12 @@ function generateFingerprint(request: Request): string {
 export async function POST(request: Request) {
     try {
         const session = await getServerSession(authOptions)
-        const { meetingId, categoryId, nomineeId, voterName } = await request.json()
+        const { meetingId, categoryId, nomineeId, guestNomineeName, voterName } = await request.json()
 
-        if (!meetingId || !categoryId || !nomineeId) {
+        // Either nomineeId or guestNomineeName is required
+        if (!meetingId || !categoryId || (!nomineeId && !guestNomineeName)) {
             return NextResponse.json(
-                { error: 'Meeting ID, category ID, and nominee ID are required' },
+                { error: 'Meeting ID, category ID, and nominee (member or guest) are required' },
                 { status: 400 }
             )
         }
@@ -65,7 +66,8 @@ export async function POST(request: Request) {
                     meetingId,
                     categoryId,
                     voterId: voter.id,
-                    nomineeId,
+                    nomineeId: nomineeId || null,
+                    guestNomineeName: guestNomineeName || null,
                     isAnonymous: false,
                     voterName: voterName || null,
                 },
@@ -86,7 +88,8 @@ export async function POST(request: Request) {
             data: {
                 meetingId,
                 categoryId,
-                nomineeId,
+                nomineeId: nomineeId || null,
+                guestNomineeName: guestNomineeName || null,
                 isAnonymous: true,
                 voterFingerprint: fingerprint,
                 voterName: voterName || null,

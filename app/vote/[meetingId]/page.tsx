@@ -26,7 +26,8 @@ export default function VotingPage({ params }: { params: Promise<{ meetingId: st
     const [categories, setCategories] = useState<Category[]>([]);
     const [nominees, setNominees] = useState<Member[]>([]);
     const [meetingNominations, setMeetingNominations] = useState<any[]>([]);
-    const [votes, setVotes] = useState<Record<string, string>>({}); // categoryId -> memberId
+    const [meetingGuestNames, setMeetingGuestNames] = useState<string[]>([]);
+    const [votes, setVotes] = useState<Record<string, string>>({}); // categoryId -> memberId or guest:guestName
     const [voterName, setVoterName] = useState('');
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [meetingData, setMeetingData] = useState<any>(null);
@@ -62,6 +63,11 @@ export default function VotingPage({ params }: { params: Promise<{ meetingId: st
                 // Fallback (optional): If NO categories are enabled, maybe show all club categories?
                 // The user requested selective, so if none are selected, it should probably be empty.
                 setCategories([]);
+            }
+
+            // Load meeting-level guest names
+            if (data.guestNames && data.guestNames.length > 0) {
+                setMeetingGuestNames(data.guestNames);
             }
 
             const clubId = data.clubId;
@@ -102,14 +108,17 @@ export default function VotingPage({ params }: { params: Promise<{ meetingId: st
             let successCount = 0;
             const voteEntries = Object.entries(votes);
 
-            for (const [categoryId, nomineeId] of voteEntries) {
+            for (const [categoryId, votedFor] of voteEntries) {
+                // Check if voting for a guest (prefixed with 'guest:')
+                const isGuestVote = votedFor.startsWith('guest:');
                 const res = await fetch('/api/votes', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
                         meetingId,
                         categoryId,
-                        nomineeId,
+                        nomineeId: isGuestVote ? null : votedFor,
+                        guestNomineeName: isGuestVote ? votedFor.replace('guest:', '') : null,
                         voterName: voterName.trim()
                     })
                 });
@@ -250,20 +259,37 @@ export default function VotingPage({ params }: { params: Promise<{ meetingId: st
                                         <option value="" disabled>Select a performer...</option>
                                         {(() => {
                                             const categoryNominees = meetingNominations.filter(n => n.categoryId === category.id);
+                                            const guests = meetingGuestNames; // Use meeting-level guests
+                                            let optionIndex = 0;
 
-                                            if (categoryNominees.length > 0) {
-                                                return categoryNominees.map((n, index) => (
-                                                    <option key={n.memberId} value={n.memberId}>
-                                                        {index + 1}. {n.member.user.name}
+                                            const memberOptions = categoryNominees.length > 0
+                                                ? categoryNominees.map((n) => {
+                                                    optionIndex++;
+                                                    return (
+                                                        <option key={n.memberId} value={n.memberId}>
+                                                            {optionIndex}. {n.member.user.name}
+                                                        </option>
+                                                    );
+                                                })
+                                                : nominees.map((nominee) => {
+                                                    optionIndex++;
+                                                    return (
+                                                        <option key={nominee.id} value={nominee.id}>
+                                                            {optionIndex}. {nominee.user.name}
+                                                        </option>
+                                                    );
+                                                });
+
+                                            const guestOptions = guests.map((guestName) => {
+                                                optionIndex++;
+                                                return (
+                                                    <option key={`guest-${guestName}`} value={`guest:${guestName}`}>
+                                                        {optionIndex}. {guestName} (Guest)
                                                     </option>
-                                                ));
-                                            } else {
-                                                return nominees.map((nominee, index) => (
-                                                    <option key={nominee.id} value={nominee.id}>
-                                                        {index + 1}. {nominee.user.name}
-                                                    </option>
-                                                ));
-                                            }
+                                                );
+                                            });
+
+                                            return [...memberOptions, ...guestOptions];
                                         })()}
                                     </select>
                                 </div>

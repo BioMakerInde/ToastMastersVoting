@@ -38,34 +38,71 @@ export async function GET(request: Request) {
             )
         }
 
-        // Calculate results
-        const votes = await prisma.vote.groupBy({
-            by: ['categoryId', 'nomineeId'],
+        // Calculate results - get all votes for this meeting
+        const allVotes = await prisma.vote.findMany({
             where: { meetingId },
-            _count: true,
-        })
+            include: {
+                category: true,
+            }
+        });
 
-        // Get category and member details
-        const results = await Promise.all(
-            votes.map(async (vote) => {
-                const category = await prisma.votingCategory.findUnique({
-                    where: { id: vote.categoryId },
-                })
+        // Group votes by category and nominee (member or guest)
+        const voteMap: Record<string, Record<string, { count: number; isGuest: boolean; name: string | null; nomineeId: string | null }>> = {};
 
-                const nominee = await prisma.member.findUnique({
-                    where: { id: vote.nomineeId },
-                    include: { user: true },
-                })
+        for (const vote of allVotes) {
+            if (!voteMap[vote.categoryId]) {
+                voteMap[vote.categoryId] = {};
+            }
 
-                return {
-                    categoryId: vote.categoryId,
-                    categoryName: category?.name,
-                    nomineeId: vote.nomineeId,
-                    nomineeName: nominee?.user.name,
-                    voteCount: vote._count,
+            // Determine the key based on whether it's a guest or member vote
+            let key: string;
+            let isGuest = false;
+            let name: string | null = null;
+
+            if (vote.guestNomineeName) {
+                key = `guest:${vote.guestNomineeName}`;
+                isGuest = true;
+                name = vote.guestNomineeName;
+            } else if (vote.nomineeId) {
+                key = vote.nomineeId;
+            } else {
+                continue; // Skip invalid votes
+            }
+
+            if (!voteMap[vote.categoryId][key]) {
+                voteMap[vote.categoryId][key] = { count: 0, isGuest, name, nomineeId: vote.nomineeId };
+            }
+            voteMap[vote.categoryId][key].count++;
+        }
+
+        // Build results with member/guest details
+        const results: any[] = [];
+        for (const [categoryId, nominees] of Object.entries(voteMap)) {
+            const category = await prisma.votingCategory.findUnique({
+                where: { id: categoryId },
+            });
+
+            for (const [key, data] of Object.entries(nominees)) {
+                let nomineeName = data.name;
+
+                if (!data.isGuest && data.nomineeId) {
+                    const member = await prisma.member.findUnique({
+                        where: { id: data.nomineeId },
+                        include: { user: true },
+                    });
+                    nomineeName = member?.user.name || 'Unknown';
                 }
-            })
-        )
+
+                results.push({
+                    categoryId,
+                    categoryName: category?.name,
+                    nomineeId: data.nomineeId,
+                    nomineeName,
+                    isGuest: data.isGuest,
+                    voteCount: data.count,
+                });
+            }
+        }
 
         // Group by category and find winners
         const resultsByCategory = results.reduce((acc: any, result) => {
@@ -82,6 +119,7 @@ export async function GET(request: Request) {
             acc[result.categoryId].nominees.push({
                 nomineeId: result.nomineeId,
                 nomineeName: result.nomineeName,
+                isGuest: result.isGuest,
                 voteCount: result.voteCount,
             })
 
@@ -90,6 +128,7 @@ export async function GET(request: Request) {
                 acc[result.categoryId].winner = {
                     nomineeId: result.nomineeId,
                     nomineeName: result.nomineeName,
+                    isGuest: result.isGuest,
                     voteCount: result.voteCount,
                 }
             }

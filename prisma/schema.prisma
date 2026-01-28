@@ -68,6 +68,7 @@ model Meeting {
   isVotingOpen    Boolean           @default(false)
   isFinalized     Boolean           @default(false)
   finalizedAt     DateTime?
+  guestNames      String[]          // Guest participants for this meeting
   createdAt       DateTime          @default(now())
   updatedAt       DateTime          @updatedAt
   club            Club              @relation(fields: [clubId], references: [id], onDelete: Cascade)
@@ -126,7 +127,8 @@ model Vote {
   meetingId        String
   categoryId       String
   voterId          String?
-  nomineeId        String
+  nomineeId        String?        // For member nominees (optional now)
+  guestNomineeName String?        // For guest nominees
   isAnonymous      Boolean        @default(false)
   voterFingerprint String?
   voterName        String?

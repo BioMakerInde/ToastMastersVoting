@@ -116,6 +116,7 @@ const updateMeetingSchema = z.object({
     isVotingOpen: z.boolean().optional(),
     title: z.string().optional(),
     description: z.string().optional(),
+    guestNames: z.array(z.string()).optional(),
 });
 
 export async function PUT(req: Request) {
@@ -159,6 +160,7 @@ export async function PUT(req: Request) {
                 isVotingOpen: body.isVotingOpen,
                 title: body.title,
                 description: body.description,
+                guestNames: body.guestNames,
             }
         });
 
