@@ -152,12 +152,51 @@ export async function GET(request: Request) {
             )
         }
 
-        // Get vote counts by category
-        const votes = await prisma.vote.groupBy({
-            by: ['categoryId', 'nomineeId'],
+        // Get all votes for this meeting
+        const allVotes = await prisma.vote.findMany({
             where: { meetingId },
-            _count: true,
-        })
+            select: {
+                categoryId: true,
+                nomineeId: true,
+                guestNomineeName: true,
+            }
+        });
+
+        // Group votes by category and nominee (member or guest)
+        const voteMap: Record<string, Record<string, { nomineeId: string | null; guestNomineeName: string | null; _count: number }>> = {};
+
+        for (const vote of allVotes) {
+            if (!voteMap[vote.categoryId]) {
+                voteMap[vote.categoryId] = {};
+            }
+
+            // Use guestNomineeName as key for guests, nomineeId for members
+            const key = vote.guestNomineeName
+                ? `guest:${vote.guestNomineeName}`
+                : vote.nomineeId || 'unknown';
+
+            if (!voteMap[vote.categoryId][key]) {
+                voteMap[vote.categoryId][key] = {
+                    nomineeId: vote.nomineeId,
+                    guestNomineeName: vote.guestNomineeName,
+                    _count: 0
+                };
+            }
+            voteMap[vote.categoryId][key]._count++;
+        }
+
+        // Convert to array format
+        const votes = [];
+        for (const [categoryId, nominees] of Object.entries(voteMap)) {
+            for (const data of Object.values(nominees)) {
+                votes.push({
+                    categoryId,
+                    nomineeId: data.nomineeId,
+                    guestNomineeName: data.guestNomineeName,
+                    _count: data._count
+                });
+            }
+        }
 
         return NextResponse.json({ votes })
     } catch (error) {

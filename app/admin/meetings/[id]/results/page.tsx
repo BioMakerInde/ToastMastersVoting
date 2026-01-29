@@ -77,9 +77,17 @@ export default function MeetingResultsPage({ params }: { params: Promise<{ id: s
         }
     };
 
-    const getNomineeName = (nomineeId: string) => {
-        const member = members.find(m => m.id === nomineeId);
-        return member?.user.name || 'Unknown';
+    const getNomineeName = (result: any) => {
+        // For guests, use guestNomineeName
+        if (result.guestNomineeName) {
+            return `${result.guestNomineeName} (Guest)`;
+        }
+        // For members, look up by nomineeId
+        if (result.nomineeId) {
+            const member = members.find(m => m.id === result.nomineeId);
+            return member?.user.name || 'Unknown';
+        }
+        return 'Unknown';
     };
 
     const getCategoryResults = (categoryId: string) => {
@@ -123,11 +131,12 @@ export default function MeetingResultsPage({ params }: { params: Promise<{ id: s
                                     ) : (
                                         catResults.map((res, idx) => {
                                             const percentage = totalVotes > 0 ? (res._count / totalVotes) * 100 : 0;
+                                            const key = res.guestNomineeName ? `guest-${res.guestNomineeName}` : res.nomineeId;
                                             return (
-                                                <div key={res.nomineeId} className="space-y-1">
+                                                <div key={key} className="space-y-1">
                                                     <div className="flex justify-between text-sm">
                                                         <span className="font-medium text-gray-700">
-                                                            {idx === 0 && '🏆 '}{getNomineeName(res.nomineeId)}
+                                                            {idx === 0 && '🏆 '}{getNomineeName(res)}
                                                         </span>
                                                         <span className="text-gray-500 font-mono">{res._count}</span>
                                                     </div>
