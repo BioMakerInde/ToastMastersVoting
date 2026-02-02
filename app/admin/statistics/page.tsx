@@ -38,8 +38,15 @@ export default function StatisticsPage() {
                 const data = await res.json();
                 setProfile(data);
                 if (data.clubId) {
-                    fetchStatistics(data.clubId);
+                    await fetchStatistics(data.clubId);
+                } else {
+                    // User has no club - stop loading and show message
+                    setError('You are not associated with any club. Please join a club first.');
+                    setLoading(false);
                 }
+            } else {
+                setError('Failed to load profile. Please try logging in again.');
+                setLoading(false);
             }
         } catch (err) {
             setError('Failed to load profile');
@@ -54,10 +61,11 @@ export default function StatisticsPage() {
                 const data = await res.json();
                 setResults(data.results || []);
             } else {
-                setError('Failed to load statistics');
+                const errData = await res.json().catch(() => ({}));
+                setError(errData.error || 'Failed to load statistics');
             }
         } catch (err) {
-            setError('Connection error');
+            setError('Connection error - please check your internet connection');
         } finally {
             setLoading(false);
         }
@@ -217,8 +225,8 @@ export default function StatisticsPage() {
                                                     </td>
                                                     <td className="px-6 py-4 whitespace-nowrap">
                                                         <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${cat.isGuestWinner
-                                                                ? 'bg-amber-100 text-amber-800'
-                                                                : 'bg-green-100 text-green-800'
+                                                            ? 'bg-amber-100 text-amber-800'
+                                                            : 'bg-green-100 text-green-800'
                                                             }`}>
                                                             {cat.isGuestWinner ? 'Guest' : 'Member'}
                                                         </span>
