@@ -1,6 +1,6 @@
 'use client';
 
-import { useSession } from 'next-auth/react';
+import { useSession, signOut } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
@@ -106,10 +106,16 @@ export default function MasterAdminLayout({
                     <div className="text-sm text-gray-400">
                         Logged in as <span className="text-purple-400 font-medium">{session?.user?.name}</span>
                     </div>
-                    <div className="flex items-center gap-2">
+                    <div className="flex items-center gap-4">
                         <span className="px-2 py-1 bg-purple-600/20 text-purple-400 text-xs font-medium rounded-full">
                             Master Admin
                         </span>
+                        <button
+                            onClick={() => signOut({ callbackUrl: '/login' })}
+                            className="text-sm text-gray-400 hover:text-red-400 transition-colors"
+                        >
+                            Sign Out
+                        </button>
                     </div>
                 </header>
 
