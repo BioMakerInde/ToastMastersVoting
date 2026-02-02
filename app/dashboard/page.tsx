@@ -137,23 +137,6 @@ export default function Dashboard() {
             </>
           )}
 
-          {/* Join Club Card */}
-          <div className="bg-white overflow-hidden shadow rounded-lg">
-            <div className="px-4 py-5 sm:p-6">
-              <h3 className="text-lg leading-6 font-medium text-gray-900">
-                Join a Club
-              </h3>
-              <div className="mt-2 max-w-xl text-sm text-gray-500">
-                <p>Find a Toastmasters club to join.</p>
-              </div>
-              <div className="mt-5">
-                <Link href="/clubs/join" className="inline-flex items-center justify-center px-4 py-2 border border-transparent font-medium rounded-md text-indigo-700 bg-indigo-100 hover:bg-indigo-200 sm:text-sm">
-                  Search Clubs
-                </Link>
-              </div>
-            </div>
-          </div>
-
           {/* Create Club Card */}
           <div className="bg-white overflow-hidden shadow rounded-lg">
             <div className="px-4 py-5 sm:p-6">
@@ -171,23 +154,6 @@ export default function Dashboard() {
             </div>
           </div>
 
-          {/* Active Meetings Card */}
-          <div className="bg-white overflow-hidden shadow rounded-lg">
-            <div className="px-4 py-5 sm:p-6">
-              <h3 className="text-lg leading-6 font-medium text-gray-900">
-                Active Meetings
-              </h3>
-              <div className="mt-2 max-w-xl text-sm text-gray-500">
-                <p>Check for ongoing meetings and cast your votes.</p>
-              </div>
-              <div className="mt-5">
-                <Link href="#" className="inline-flex items-center justify-center px-4 py-2 border border-transparent font-medium rounded-md text-indigo-700 bg-indigo-100 hover:bg-indigo-200 sm:text-sm">
-                  View Meetings
-                </Link>
-              </div>
-            </div>
-          </div>
-
           {/* Profile Card */}
           <div className="bg-white overflow-hidden shadow rounded-lg">
             <div className="px-4 py-5 sm:p-6">
@@ -200,23 +166,6 @@ export default function Dashboard() {
               <div className="mt-5">
                 <Link href="/profile" className="inline-flex items-center justify-center px-4 py-2 border border-transparent font-medium rounded-md text-green-700 bg-green-100 hover:bg-green-200 sm:text-sm">
                   View Profile
-                </Link>
-              </div>
-            </div>
-          </div>
-
-          {/* Admin Card (Conditional?) - keeping simple for now */}
-          <div className="bg-white overflow-hidden shadow rounded-lg">
-            <div className="px-4 py-5 sm:p-6">
-              <h3 className="text-lg leading-6 font-medium text-gray-900">
-                Past Results
-              </h3>
-              <div className="mt-2 max-w-xl text-sm text-gray-500">
-                <p>See results from previous meetings.</p>
-              </div>
-              <div className="mt-5">
-                <Link href="#" className="inline-flex items-center justify-center px-4 py-2 border border-transparent font-medium rounded-md text-gray-700 bg-gray-100 hover:bg-gray-200 sm:text-sm">
-                  View Results
                 </Link>
               </div>
             </div>

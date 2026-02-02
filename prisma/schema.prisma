@@ -116,6 +116,7 @@ model MeetingCategory {
   id         String         @id @default(cuid())
   meetingId  String
   categoryId String
+  guestNames String[]       // Guest names specific to this category
   createdAt  DateTime       @default(now())
   category   VotingCategory @relation(fields: [categoryId], references: [id], onDelete: Cascade)
   meeting    Meeting        @relation(fields: [meetingId], references: [id], onDelete: Cascade)
