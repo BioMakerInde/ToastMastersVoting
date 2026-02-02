@@ -26,7 +26,7 @@ export default function VotingPage({ params }: { params: Promise<{ meetingId: st
     const [categories, setCategories] = useState<Category[]>([]);
     const [nominees, setNominees] = useState<Member[]>([]);
     const [meetingNominations, setMeetingNominations] = useState<any[]>([]);
-    const [meetingGuestNames, setMeetingGuestNames] = useState<string[]>([]);
+    const [categoryGuestsMap, setCategoryGuestsMap] = useState<Record<string, string[]>>({}); // categoryId -> guest names
     const [votes, setVotes] = useState<Record<string, string>>({}); // categoryId -> memberId or guest:guestName
     const [voterName, setVoterName] = useState('');
     const [isSubmitting, setIsSubmitting] = useState(false);
@@ -65,9 +65,13 @@ export default function VotingPage({ params }: { params: Promise<{ meetingId: st
                 setCategories([]);
             }
 
-            // Load meeting-level guest names
-            if (data.guestNames && data.guestNames.length > 0) {
-                setMeetingGuestNames(data.guestNames);
+            // Load per-category guest names from meeting categories
+            if (data.categories && data.categories.length > 0) {
+                const guestsMap: Record<string, string[]> = {};
+                data.categories.forEach((mc: any) => {
+                    guestsMap[mc.categoryId] = mc.guestNames || [];
+                });
+                setCategoryGuestsMap(guestsMap);
             }
 
             const clubId = data.clubId;
@@ -259,9 +263,10 @@ export default function VotingPage({ params }: { params: Promise<{ meetingId: st
                                         <option value="" disabled>Select a performer...</option>
                                         {(() => {
                                             const categoryNominees = meetingNominations.filter(n => n.categoryId === category.id);
-                                            const guests = meetingGuestNames; // Use meeting-level guests
+                                            const categoryGuests = categoryGuestsMap[category.id] || []; // Per-category guests
                                             let optionIndex = 0;
 
+                                            // First: nominated members
                                             const memberOptions = categoryNominees.length > 0
                                                 ? categoryNominees.map((n) => {
                                                     optionIndex++;
@@ -280,7 +285,8 @@ export default function VotingPage({ params }: { params: Promise<{ meetingId: st
                                                     );
                                                 });
 
-                                            const guestOptions = guests.map((guestName) => {
+                                            // Then: category-specific guests (with sequential numbers continuing)
+                                            const guestOptions = categoryGuests.map((guestName: string) => {
                                                 optionIndex++;
                                                 return (
                                                     <option key={`guest-${guestName}`} value={`guest:${guestName}`}>
