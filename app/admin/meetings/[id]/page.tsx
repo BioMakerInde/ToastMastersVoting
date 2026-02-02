@@ -472,13 +472,13 @@ export default function MeetingDetailsPage({ params }: { params: Promise<{ id: s
                                                     <div className="flex items-center gap-4">
                                                         <button
                                                             onClick={() => toggleCategory(category.id)}
-                                                            disabled={isToggling || meeting.isVotingOpen}
-                                                            className={`w-12 h-6 rounded-full relative transition-colors duration-200 ${meeting.isVotingOpen
+                                                            disabled={isToggling || meeting.isVotingOpen || meeting.isFinalized}
+                                                            className={`w-12 h-6 rounded-full relative transition-colors duration-200 ${(meeting.isVotingOpen || meeting.isFinalized)
                                                                 ? 'bg-gray-300 cursor-not-allowed'
                                                                 : isEnabled
                                                                     ? 'bg-indigo-600'
                                                                     : 'bg-gray-200'
-                                                                } ${isToggling ? 'opacity-50 cursor-wait' : !meeting.isVotingOpen ? 'cursor-pointer' : ''}`}
+                                                                } ${isToggling ? 'opacity-50 cursor-wait' : !(meeting.isVotingOpen || meeting.isFinalized) ? 'cursor-pointer' : ''}`}
                                                         >
                                                             <div className={`absolute top-1 left-1 bg-white w-4 h-4 rounded-full transition-transform duration-200 ${isEnabled ? 'translate-x-6' : 'translate-x-0'} flex items-center justify-center`}>
                                                                 {isToggling && <div className="w-2 h-2 border border-indigo-600 border-t-transparent animate-spin rounded-full"></div>}
