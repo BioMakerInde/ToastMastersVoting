@@ -20,29 +20,55 @@ interface MeetingResult {
     categories: CategoryWinner[];
 }
 
+interface Club {
+    id: string;
+    name: string;
+}
+
 export default function StatisticsPage() {
     const { data: session } = useSession();
     const [loading, setLoading] = useState(true);
+    const [loadingStats, setLoadingStats] = useState(false);
     const [results, setResults] = useState<MeetingResult[]>([]);
-    const [profile, setProfile] = useState<any>(null);
+    const [clubs, setClubs] = useState<Club[]>([]);
+    const [selectedClubId, setSelectedClubId] = useState<string>('');
     const [error, setError] = useState('');
 
     useEffect(() => {
-        fetchProfile();
+        fetchUserClubs();
     }, [session]);
 
-    const fetchProfile = async () => {
+    const fetchUserClubs = async () => {
         try {
             const res = await fetch('/api/profile');
             if (res.ok) {
                 const data = await res.json();
-                setProfile(data);
-                if (data.clubId) {
-                    await fetchStatistics(data.clubId);
+
+                // Get all clubs user is a member of (admin/officer)
+                const clubsRes = await fetch('/api/user/clubs');
+                if (clubsRes.ok) {
+                    const clubsData = await clubsRes.json();
+                    setClubs(clubsData.clubs || []);
+
+                    // Auto-select first club or user's primary club
+                    const defaultClubId = data.clubId || (clubsData.clubs?.[0]?.id);
+                    if (defaultClubId) {
+                        setSelectedClubId(defaultClubId);
+                        await fetchStatistics(defaultClubId);
+                    } else {
+                        setError('You are not associated with any club.');
+                        setLoading(false);
+                    }
                 } else {
-                    // User has no club - stop loading and show message
-                    setError('You are not associated with any club. Please join a club first.');
-                    setLoading(false);
+                    // Fallback: use profile's clubId
+                    if (data.clubId) {
+                        setClubs([{ id: data.clubId, name: data.clubName || 'My Club' }]);
+                        setSelectedClubId(data.clubId);
+                        await fetchStatistics(data.clubId);
+                    } else {
+                        setError('You are not associated with any club. Please join a club first.');
+                        setLoading(false);
+                    }
                 }
             } else {
                 setError('Failed to load profile. Please try logging in again.');
@@ -54,7 +80,14 @@ export default function StatisticsPage() {
         }
     };
 
+    const handleClubChange = async (clubId: string) => {
+        setSelectedClubId(clubId);
+        setError('');
+        await fetchStatistics(clubId);
+    };
+
     const fetchStatistics = async (clubId: string) => {
+        setLoadingStats(true);
         try {
             const res = await fetch(`/api/admin/statistics?clubId=${clubId}`);
             if (res.ok) {
@@ -68,6 +101,7 @@ export default function StatisticsPage() {
             setError('Connection error - please check your internet connection');
         } finally {
             setLoading(false);
+            setLoadingStats(false);
         }
     };
 
@@ -139,7 +173,29 @@ export default function StatisticsPage() {
                         <h1 className="text-3xl font-bold text-gray-900">Voting Statistics</h1>
                         <p className="mt-2 text-gray-600">Date-wise winners for all finalized meetings</p>
                     </div>
-                    <div className="mt-4 md:mt-0">
+                    <div className="mt-4 md:mt-0 flex items-center gap-4">
+                        {/* Club Selector */}
+                        {clubs.length > 0 && (
+                            <div className="relative">
+                                <select
+                                    value={selectedClubId}
+                                    onChange={(e) => handleClubChange(e.target.value)}
+                                    disabled={loadingStats}
+                                    className="block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-lg bg-white shadow-sm disabled:opacity-50"
+                                >
+                                    {clubs.map(club => (
+                                        <option key={club.id} value={club.id}>
+                                            {club.name}
+                                        </option>
+                                    ))}
+                                </select>
+                                {loadingStats && (
+                                    <div className="absolute inset-y-0 right-8 flex items-center">
+                                        <div className="animate-spin h-4 w-4 border-2 border-indigo-600 border-t-transparent rounded-full"></div>
+                                    </div>
+                                )}
+                            </div>
+                        )}
                         <button
                             onClick={exportToCSV}
                             disabled={results.length === 0}
