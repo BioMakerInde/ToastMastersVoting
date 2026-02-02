@@ -1,13 +1,22 @@
 'use client';
 
 import { useSession } from 'next-auth/react';
+import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 
 import { useState, useEffect } from 'react';
 
 export default function Dashboard() {
-  const { data: session } = useSession();
+  const { data: session, status } = useSession();
+  const router = useRouter();
   const [profile, setProfile] = useState<any>(null);
+
+  // Redirect master admins to master admin dashboard
+  useEffect(() => {
+    if (status === 'authenticated' && session?.user?.isMasterAdmin) {
+      router.push('/master-admin');
+    }
+  }, [session, status, router]);
 
   useEffect(() => {
     if (session?.user?.email) {
@@ -17,6 +26,7 @@ export default function Dashboard() {
         .catch(err => console.error(err));
     }
   }, [session]);
+
 
   return (
     <div className="min-h-screen bg-gray-50 font-sans">

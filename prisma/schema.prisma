@@ -9,16 +9,17 @@ datasource db {
 }
 
 model User {
-  id         String   @id @default(cuid())
-  email      String   @unique
-  password   String
-  name       String
-  firstName  String?
-  secondName String?
-  phone      String?
-  createdAt  DateTime @default(now())
-  updatedAt  DateTime @updatedAt
-  members    Member[]
+  id            String   @id @default(cuid())
+  email         String   @unique
+  password      String
+  name          String
+  firstName     String?
+  secondName    String?
+  phone         String?
+  isMasterAdmin Boolean  @default(false)  // Only true for site-wide super admins
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  members       Member[]
 }
 
 model Club {

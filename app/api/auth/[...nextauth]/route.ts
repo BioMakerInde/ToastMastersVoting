@@ -1,6 +1,7 @@
 import NextAuth, { NextAuthOptions } from 'next-auth'
 import CredentialsProvider from 'next-auth/providers/credentials'
 import { getUserByEmail, verifyPassword } from '@/lib/auth'
+import { prisma } from '@/lib/prisma'
 
 export const authOptions: NextAuthOptions = {
     providers: [
@@ -34,6 +35,7 @@ export const authOptions: NextAuthOptions = {
                     id: user.id,
                     email: user.email,
                     name: user.name,
+                    isMasterAdmin: user.isMasterAdmin || false,
                 }
             },
         }),
@@ -45,15 +47,25 @@ export const authOptions: NextAuthOptions = {
         signIn: '/login',
     },
     callbacks: {
-        async jwt({ token, user }) {
+        async jwt({ token, user, trigger }) {
             if (user) {
                 token.id = user.id
+                token.isMasterAdmin = user.isMasterAdmin
+            }
+            // Refresh isMasterAdmin on session update
+            if (trigger === 'update') {
+                const dbUser = await prisma.user.findUnique({
+                    where: { id: token.id as string },
+                    select: { isMasterAdmin: true }
+                })
+                token.isMasterAdmin = dbUser?.isMasterAdmin || false
             }
             return token
         },
         async session({ session, token }) {
             if (session.user) {
                 session.user.id = token.id as string
+                session.user.isMasterAdmin = token.isMasterAdmin as boolean
             }
             return session
         },
