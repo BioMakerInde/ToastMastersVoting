@@ -33,31 +33,58 @@ export async function GET(request: Request) {
             return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
         }
 
-        // Get all finalized meetings with their categories
+        // Get all finalized meetings (lightweight query)
         const meetings = await prisma.meeting.findMany({
             where: {
                 clubId,
                 isFinalized: true
             },
             orderBy: { meetingDate: 'desc' },
-            include: {
-                categories: {
-                    include: {
-                        category: true
-                    }
-                }
+            select: {
+                id: true,
+                title: true,
+                meetingDate: true
             }
         });
 
+        if (meetings.length === 0) {
+            return NextResponse.json({ results: [] });
+        }
+
+        const meetingIds = meetings.map(m => m.id);
+
+        // Fetch ALL votes for all meetings in ONE query
+        const allVotes = await prisma.vote.findMany({
+            where: { meetingId: { in: meetingIds } },
+            include: {
+                category: { select: { id: true, name: true } }
+            }
+        });
+
+        // Collect all unique nomineeIds across all votes
+        const nomineeIds = [...new Set(allVotes.filter(v => v.nomineeId).map(v => v.nomineeId as string))];
+
+        // Fetch all member names in ONE query
+        const allMembers = nomineeIds.length > 0
+            ? await prisma.member.findMany({
+                where: { id: { in: nomineeIds } },
+                include: { user: { select: { name: true } } }
+            })
+            : [];
+        const memberMap = new Map(allMembers.map(m => [m.id, m.user.name]));
+
+        // Group votes by meeting, then by category
+        const votesByMeeting = new Map<string, typeof allVotes>();
+        allVotes.forEach(vote => {
+            if (!votesByMeeting.has(vote.meetingId)) {
+                votesByMeeting.set(vote.meetingId, []);
+            }
+            votesByMeeting.get(vote.meetingId)!.push(vote);
+        });
+
         // Process results for each meeting
-        const results = await Promise.all(meetings.map(async (meeting) => {
-            // Get votes for this meeting
-            const votes = await prisma.vote.findMany({
-                where: { meetingId: meeting.id },
-                include: {
-                    category: true
-                }
-            });
+        const results = meetings.map(meeting => {
+            const meetingVotes = votesByMeeting.get(meeting.id) || [];
 
             // Group votes by category
             const categoryResults: Record<string, {
@@ -65,19 +92,7 @@ export async function GET(request: Request) {
                 votes: Record<string, { name: string; count: number; isGuest: boolean }>;
             }> = {};
 
-            // Collect all nomineIds to look up member names
-            const nomineeIds = votes
-                .filter(v => v.nomineeId)
-                .map(v => v.nomineeId as string);
-
-            // Fetch member names in one query
-            const members = await prisma.member.findMany({
-                where: { id: { in: nomineeIds } },
-                include: { user: { select: { name: true } } }
-            });
-            const memberMap = new Map(members.map(m => [m.id, m.user.name]));
-
-            votes.forEach(vote => {
+            meetingVotes.forEach(vote => {
                 const catId = vote.categoryId;
                 if (!categoryResults[catId]) {
                     categoryResults[catId] = {
@@ -123,7 +138,7 @@ export async function GET(request: Request) {
                 meetingDate: meeting.meetingDate.toISOString(),
                 categories: categoryWinners
             };
-        }));
+        });
 
         return NextResponse.json({ results });
     } catch (error) {
