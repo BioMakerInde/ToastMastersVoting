@@ -85,7 +85,7 @@ export default function ExcelImportPage() {
                     name: row['Name'] || '',
                     email: row['Member E-mail'] || row['Email'] || '',
                     phone: row['Home Phone'] ? String(row['Home Phone']) : (row['Mobile Phone'] ? String(row['Mobile Phone']) : ''),
-                    membershipNumber: row['Addr L1'] || row['Member ID'] || '',
+                    membershipNumber: row['Member ID'] || row['Toastmaster Number'] || row['Membership ID'] || '',
                     pathway: row['Pathways Enrolled'] || '',
                     address: [row['Addr L1'], row['Addr L2']].filter(Boolean).join(', '),
                     city: row['City'] || '',
