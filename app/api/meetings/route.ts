@@ -3,6 +3,7 @@ import { getServerSession } from 'next-auth';
 import { prisma } from '@/lib/prisma';
 import { authOptions } from '../auth/[...nextauth]/route';
 import { z } from 'zod';
+import { checkLimit } from '@/lib/subscription';
 
 // Schema for creating a meeting
 const createMeetingSchema = z.object({
@@ -41,6 +42,15 @@ export async function POST(req: Request) {
         const body = createMeetingSchema.parse(json);
 
         const clubId = body.clubId || adminMember.clubId;
+
+        // Check subscription meeting limit
+        const limitCheck = await checkLimit(clubId, 'MEETINGS');
+        if (!limitCheck.allowed) {
+            return NextResponse.json(
+                { error: limitCheck.message, upgradeRequired: true },
+                { status: 403 }
+            );
+        }
 
         const meeting = await prisma.meeting.create({
             data: {

@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth'
 import { authOptions } from '../auth/[...nextauth]/route';
 import { prisma } from '@/lib/prisma'
+import { isFeatureAllowed } from '@/lib/subscription'
 
 // GET all categories for a club
 export async function GET(request: Request) {
@@ -102,6 +103,20 @@ export async function POST(request: Request) {
                 { error: 'Only admins and officers can create categories' },
                 { status: 403 }
             )
+        }
+
+        // Check if custom categories are allowed (beyond default 5)
+        const existingCount = await prisma.votingCategory.count({
+            where: { clubId, isActive: true }
+        });
+        if (existingCount >= 5) {
+            const allowed = await isFeatureAllowed(clubId, 'CUSTOM_CATEGORIES');
+            if (!allowed) {
+                return NextResponse.json(
+                    { error: 'Free plan allows up to 5 categories. Upgrade to Pro for unlimited categories.', upgradeRequired: true },
+                    { status: 403 }
+                );
+            }
         }
 
         // Create category

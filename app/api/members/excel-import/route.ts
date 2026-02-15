@@ -3,6 +3,7 @@ import { getServerSession } from 'next-auth';
 import { prisma } from '@/lib/prisma';
 import { authOptions } from '../../auth/[...nextauth]/route';
 import { hashPassword } from '@/lib/auth';
+import { isFeatureAllowed } from '@/lib/subscription';
 
 export async function POST(request: Request) {
     console.log('📥 Excel import API called');
@@ -49,6 +50,15 @@ export async function POST(request: Request) {
             console.log('❌ Not admin/officer for this club');
             return NextResponse.json(
                 { error: 'Only admins and officers can import members' },
+                { status: 403 }
+            );
+        }
+
+        // Check if Excel import is allowed on this plan
+        const allowed = await isFeatureAllowed(clubId, 'EXCEL_IMPORT');
+        if (!allowed) {
+            return NextResponse.json(
+                { error: 'Excel import is a Pro feature. Upgrade to Pro to use this.', upgradeRequired: true },
                 { status: 403 }
             );
         }

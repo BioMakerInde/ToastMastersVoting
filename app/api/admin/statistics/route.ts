@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/app/api/auth/[...nextauth]/route';
 import { prisma } from '@/lib/prisma';
+import { isFeatureAllowed } from '@/lib/subscription';
 
 export async function GET(request: Request) {
     try {
@@ -31,6 +32,15 @@ export async function GET(request: Request) {
 
         if (!member || !['ADMIN', 'OFFICER'].includes(member.role)) {
             return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
+        }
+
+        // Check if statistics is allowed on this plan
+        const allowed = await isFeatureAllowed(clubId, 'STATISTICS');
+        if (!allowed) {
+            return NextResponse.json(
+                { error: 'Statistics dashboard is a Pro feature. Upgrade to Pro to access.', upgradeRequired: true },
+                { status: 403 }
+            );
         }
 
         // Get all finalized meetings (lightweight query)

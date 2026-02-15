@@ -3,6 +3,7 @@ import { getServerSession } from 'next-auth';
 import { prisma } from '@/lib/prisma';
 import { authOptions } from '../../auth/[...nextauth]/route';
 import { hashPassword } from '@/lib/auth';
+import { checkLimit } from '@/lib/subscription';
 
 export async function POST(request: Request) {
     try {
@@ -51,6 +52,15 @@ export async function POST(request: Request) {
         if (!adminMember) {
             return NextResponse.json(
                 { error: 'Only admins and officers can add members' },
+                { status: 403 }
+            );
+        }
+
+        // Check subscription member limit
+        const limitCheck = await checkLimit(clubId, 'MEMBERS');
+        if (!limitCheck.allowed) {
+            return NextResponse.json(
+                { error: limitCheck.message, upgradeRequired: true },
                 { status: 403 }
             );
         }

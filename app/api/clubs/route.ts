@@ -3,6 +3,7 @@ import { getServerSession } from 'next-auth';
 import { prisma } from '@/lib/prisma';
 import { authOptions } from '../auth/[...nextauth]/route';
 import { z } from 'zod';
+import { getTrialDates } from '@/lib/subscription';
 
 const createClubSchema = z.object({
     name: z.string().min(3),
@@ -54,8 +55,20 @@ export async function POST(req: Request) {
                     userId: user.id,
                     clubId: club.id,
                     role: 'ADMIN',
-                    status: 'ACTIVE' as any, // Cast in case Prisma client hasn't regenerated
+                    status: 'ACTIVE' as any,
                     isActive: true
+                }
+            });
+
+            // Create subscription with 30-day Pro trial
+            const { trialStartDate, trialEndDate } = getTrialDates();
+            await tx.subscription.create({
+                data: {
+                    clubId: club.id,
+                    plan: 'FREE',
+                    trialStartDate,
+                    trialEndDate,
+                    isTrialUsed: false,
                 }
             });
 

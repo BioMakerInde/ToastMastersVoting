@@ -3,11 +3,18 @@
 import { useSession } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 
 export default function AdminDashboard() {
     const { data: session, status } = useSession();
     const router = useRouter();
+
+    // Fetch subscription status for trial banner
+    const [subStatus, setSubStatus] = useState<{
+        plan: string;
+        isTrialActive: boolean;
+        trialDaysRemaining: number | null;
+    } | null>(null);
 
     // Redirect if not admin (client-side check, middleware handles server-side)
     useEffect(() => {
@@ -15,6 +22,21 @@ export default function AdminDashboard() {
             // Simple check, robust check should rely on API or token claims
             // Ideally we'd decode the token or check an implementation specific role field
         }
+    }, [status]);
+
+    useEffect(() => {
+        async function fetchSub() {
+            try {
+                const clubRes = await fetch('/api/clubs?managed=true');
+                const clubs = await clubRes.json();
+                if (clubs.length > 0) {
+                    const subRes = await fetch(`/api/clubs/${clubs[0].id}/subscription`);
+                    const sub = await subRes.json();
+                    setSubStatus(sub);
+                }
+            } catch { }
+        }
+        if (status === 'authenticated') fetchSub();
     }, [status]);
 
     if (status === 'loading') return <div>Loading...</div>;
@@ -43,6 +65,36 @@ export default function AdminDashboard() {
                     <h1 className="text-3xl font-bold text-gray-900">Administration</h1>
                     <p className="mt-2 text-gray-600">Manage your club meetings, members, and settings.</p>
                 </div>
+
+                {/* Subscription Trial Banner */}
+                {subStatus?.isTrialActive && subStatus.trialDaysRemaining !== null && (
+                    <div className="mb-6 p-4 rounded-xl bg-gradient-to-r from-purple-50 to-indigo-50 border border-purple-200 flex items-center justify-between">
+                        <div className="flex items-center gap-3">
+                            <span className="text-2xl">🎉</span>
+                            <div>
+                                <p className="font-semibold text-purple-900">Pro Trial Active — {subStatus.trialDaysRemaining} days remaining</p>
+                                <p className="text-sm text-purple-700">You have full access to all Pro features during your trial.</p>
+                            </div>
+                        </div>
+                        <Link href="/admin/subscription" className="px-4 py-2 rounded-lg bg-purple-600 text-white text-sm font-medium hover:bg-purple-700 transition">
+                            View Plan
+                        </Link>
+                    </div>
+                )}
+                {subStatus && !subStatus.isTrialActive && subStatus.plan === 'FREE' && (
+                    <div className="mb-6 p-4 rounded-xl bg-gradient-to-r from-amber-50 to-orange-50 border border-amber-200 flex items-center justify-between">
+                        <div className="flex items-center gap-3">
+                            <span className="text-2xl">⚡</span>
+                            <div>
+                                <p className="font-semibold text-amber-900">Upgrade to Pro</p>
+                                <p className="text-sm text-amber-700">Unlock unlimited members, meetings, statistics, and more.</p>
+                            </div>
+                        </div>
+                        <Link href="/admin/subscription" className="px-4 py-2 rounded-lg bg-amber-600 text-white text-sm font-medium hover:bg-amber-700 transition">
+                            Upgrade
+                        </Link>
+                    </div>
+                )}
 
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                     {/* Session Management */}
@@ -153,6 +205,25 @@ export default function AdminDashboard() {
                                     <div className="ml-5">
                                         <h3 className="text-lg font-medium text-gray-900 group-hover:text-amber-600">Voting Statistics</h3>
                                         <p className="mt-1 text-sm text-gray-500">View all results and export to Excel.</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </Link>
+
+                    {/* Subscription */}
+                    <Link href="/admin/subscription" className="block group">
+                        <div className="bg-white overflow-hidden shadow rounded-lg hover:shadow-xl transition-shadow duration-300 h-full">
+                            <div className="px-5 py-6">
+                                <div className="flex items-center">
+                                    <div className="flex-shrink-0 bg-purple-500 rounded-md p-3">
+                                        <svg className="h-6 w-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z" />
+                                        </svg>
+                                    </div>
+                                    <div className="ml-5">
+                                        <h3 className="text-lg font-medium text-gray-900 group-hover:text-purple-600">Subscription</h3>
+                                        <p className="mt-1 text-sm text-gray-500">Manage your plan, view usage, and upgrade.</p>
                                     </div>
                                 </div>
                             </div>

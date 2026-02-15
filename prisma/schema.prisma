@@ -36,6 +36,26 @@ model Club {
   meetings       Meeting[]
   members        Member[]
   categories     VotingCategory[]
+  subscription   Subscription?
+}
+
+enum SubscriptionPlan {
+  FREE
+  PRO
+}
+
+model Subscription {
+  id             String           @id @default(cuid())
+  clubId         String           @unique
+  plan           SubscriptionPlan @default(FREE)
+  trialStartDate DateTime?
+  trialEndDate   DateTime?
+  isTrialUsed    Boolean          @default(false)
+  subscribedAt   DateTime?
+  expiresAt      DateTime?
+  createdAt      DateTime         @default(now())
+  updatedAt      DateTime         @updatedAt
+  club           Club             @relation(fields: [clubId], references: [id], onDelete: Cascade)
 }
 
 model Member {

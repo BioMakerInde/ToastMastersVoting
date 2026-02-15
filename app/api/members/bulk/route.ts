@@ -3,6 +3,7 @@ import { getServerSession } from 'next-auth';
 import { prisma } from '@/lib/prisma';
 import { authOptions } from '../../auth/[...nextauth]/route';
 import { hashPassword } from '@/lib/auth';
+import { isFeatureAllowed } from '@/lib/subscription';
 
 export async function POST(request: Request) {
     try {
@@ -40,6 +41,15 @@ export async function POST(request: Request) {
         if (!adminMember) {
             return NextResponse.json(
                 { error: 'Only admins and officers can bulk import members' },
+                { status: 403 }
+            );
+        }
+
+        // Check if bulk import is allowed on this plan
+        const allowed = await isFeatureAllowed(clubId, 'BULK_IMPORT');
+        if (!allowed) {
+            return NextResponse.json(
+                { error: 'Bulk import is a Pro feature. Upgrade to Pro to use this.', upgradeRequired: true },
                 { status: 403 }
             );
         }
