@@ -111,7 +111,7 @@ export default function MasterAdminLayout({
                             Master Admin
                         </span>
                         <button
-                            onClick={() => signOut({ callbackUrl: '/login' })}
+                            onClick={() => signOut({ callbackUrl: '/' })}
                             className="text-sm text-gray-400 hover:text-red-400 transition-colors"
                         >
                             Sign Out

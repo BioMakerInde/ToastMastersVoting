@@ -336,7 +336,7 @@ export default function MeetingDetailsPage({ params }: { params: Promise<{ id: s
                             {new Date(meeting.meetingDate).toLocaleDateString(undefined, { dateStyle: 'long' })}
                         </p>
                     </div>
-                    <div className="flex gap-3">
+                    <div className="flex flex-wrap gap-3">
                         <Link
                             href={`/admin/meetings/${meeting.id}/results`}
                             className="bg-white/10 hover:bg-white/20 backdrop-blur-md text-white border border-white/20 px-6 py-3 rounded-2xl font-bold transition-all flex items-center gap-2"
@@ -354,14 +354,14 @@ export default function MeetingDetailsPage({ params }: { params: Promise<{ id: s
                             <>
                                 <button
                                     onClick={toggleVoting}
-                                    className="bg-red-500 hover:bg-red-600 text-white px-8 py-3 rounded-2xl font-black transition-all shadow-xl active:scale-95 flex items-center gap-2"
+                                    className="bg-red-500 hover:bg-red-600 text-white px-5 md:px-8 py-2.5 md:py-3 rounded-2xl font-black transition-all shadow-xl active:scale-95 flex items-center gap-2 text-sm md:text-base"
                                 >
                                     <span className="w-2 h-2 rounded-full bg-white animate-pulse"></span>
                                     End Voting
                                 </button>
                                 <button
                                     onClick={finalizeVoting}
-                                    className="bg-purple-600 hover:bg-purple-700 text-white px-8 py-3 rounded-2xl font-black transition-all shadow-xl active:scale-95 flex items-center gap-2"
+                                    className="bg-purple-600 hover:bg-purple-700 text-white px-5 md:px-8 py-2.5 md:py-3 rounded-2xl font-black transition-all shadow-xl active:scale-95 flex items-center gap-2 text-sm md:text-base"
                                 >
                                     <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
                                         <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
@@ -373,7 +373,7 @@ export default function MeetingDetailsPage({ params }: { params: Promise<{ id: s
                             <button
                                 onClick={toggleVoting}
                                 disabled={hasUnsavedChanges}
-                                className={`bg-green-500 hover:bg-green-600 text-white px-8 py-3 rounded-2xl font-black transition-all shadow-xl active:scale-95 flex items-center gap-2 ${hasUnsavedChanges ? 'opacity-50 cursor-not-allowed' : ''}`}
+                                className={`bg-green-500 hover:bg-green-600 text-white px-5 md:px-8 py-2.5 md:py-3 rounded-2xl font-black transition-all shadow-xl active:scale-95 flex items-center gap-2 text-sm md:text-base ${hasUnsavedChanges ? 'opacity-50 cursor-not-allowed' : ''}`}
                                 title={hasUnsavedChanges ? 'Save nominations before starting voting' : ''}
                             >
                                 <span className="w-2 h-2 rounded-full bg-white"></span>
@@ -416,13 +416,13 @@ export default function MeetingDetailsPage({ params }: { params: Promise<{ id: s
                     {/* Right Column: Nominee Assignment */}
                     <div className="lg:col-span-2">
                         <div className="bg-white rounded-[2rem] shadow-xl shadow-gray-200/50 border border-gray-100 overflow-hidden">
-                            <div className="px-10 py-8 bg-gray-50/50 border-b border-gray-100">
-                                <div className="flex items-center justify-between mb-4">
+                            <div className="px-6 md:px-10 py-6 md:py-8 bg-gray-50/50 border-b border-gray-100">
+                                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4">
                                     <div>
                                         <h3 className="text-2xl font-black text-gray-900">Poll Configuration</h3>
                                         <p className="text-gray-500 mt-1">Select valid categories and assign performers for this session.</p>
                                     </div>
-                                    <div className="flex items-center gap-3">
+                                    <div className="flex flex-wrap items-center gap-3">
                                         <span className="text-[10px] font-black uppercase tracking-widest text-indigo-600 bg-indigo-50 px-3 py-1 rounded-full">
                                             {enabledCategoryIds.size} Active Categories
                                         </span>
@@ -455,7 +455,7 @@ export default function MeetingDetailsPage({ params }: { params: Promise<{ id: s
                                 )}
                             </div>
 
-                            <div className="p-10 space-y-12">
+                            <div className="p-6 md:p-10 space-y-12">
                                 {categories.length === 0 ? (
                                     <div className="text-center py-12">
                                         <p className="text-gray-400 font-medium">No voting categories configured for this club.</p>

@@ -16,7 +16,8 @@ export const authOptions: NextAuthOptions = {
                     throw new Error('Email and password are required')
                 }
 
-                const user = await getUserByEmail(credentials.email)
+                const normalizedEmail = credentials.email.trim().toLowerCase()
+                const user = await getUserByEmail(normalizedEmail)
 
                 if (!user) {
                     throw new Error('No user found with this email')

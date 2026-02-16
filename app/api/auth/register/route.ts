@@ -4,7 +4,10 @@ import { hashPassword } from '@/lib/auth'
 
 export async function POST(request: Request) {
     try {
-        const { email, password, name } = await request.json()
+        const body = await request.json()
+        const email = body.email?.trim().toLowerCase()
+        const password = body.password
+        const name = body.name
 
         // Validate input
         if (!email || !password || !name) {
