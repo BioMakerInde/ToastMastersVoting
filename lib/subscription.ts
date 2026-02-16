@@ -92,9 +92,15 @@ export async function getClubPlanStatus(clubId: string): Promise<PlanStatus> {
         ? Math.ceil((subscription.trialEndDate.getTime() - now.getTime()) / (1000 * 60 * 60 * 24))
         : null;
 
-    // Effective plan: PRO if subscribed to PRO or trial is active
+    // Check if PRO subscription has expired
+    const isProExpired =
+        subscription.plan === 'PRO' &&
+        subscription.expiresAt !== null &&
+        subscription.expiresAt < now;
+
+    // Effective plan: PRO if subscribed to PRO (and not expired) or trial is active
     const effectivePlan: EffectivePlan =
-        subscription.plan === 'PRO' || isTrialActive ? 'PRO' : 'FREE';
+        (subscription.plan === 'PRO' && !isProExpired) || isTrialActive ? 'PRO' : 'FREE';
 
     return {
         plan: effectivePlan,

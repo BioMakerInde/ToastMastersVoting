@@ -21,7 +21,7 @@ export async function GET() {
             return NextResponse.json({ error: 'Forbidden - Master Admin access required' }, { status: 403 });
         }
 
-        // Fetch all clubs with counts
+        // Fetch all clubs with counts and subscription
         const clubs = await prisma.club.findMany({
             orderBy: { createdAt: 'desc' },
             include: {
@@ -30,19 +30,43 @@ export async function GET() {
                         members: true,
                         meetings: true
                     }
+                },
+                subscription: {
+                    select: {
+                        plan: true,
+                        trialEndDate: true,
+                        isTrialUsed: true,
+                        expiresAt: true,
+                        subscribedAt: true,
+                    }
                 }
             }
         });
 
+        const now = new Date();
+
         return NextResponse.json({
-            clubs: clubs.map(club => ({
-                id: club.id,
-                name: club.name,
-                clubNumber: club.clubNumber,
-                createdAt: club.createdAt.toISOString(),
-                memberCount: club._count.members,
-                meetingCount: club._count.meetings
-            }))
+            clubs: clubs.map(club => {
+                const sub = club.subscription;
+                const isTrialActive = sub?.trialEndDate
+                    ? sub.trialEndDate > now && sub.plan === 'FREE'
+                    : false;
+                const isProExpired = sub?.plan === 'PRO' && sub?.expiresAt && sub.expiresAt < now;
+                const effectivePlan = (sub?.plan === 'PRO' && !isProExpired) || isTrialActive ? 'PRO' : 'FREE';
+
+                return {
+                    id: club.id,
+                    name: club.name,
+                    clubNumber: club.clubNumber,
+                    createdAt: club.createdAt.toISOString(),
+                    memberCount: club._count.members,
+                    meetingCount: club._count.meetings,
+                    plan: effectivePlan,
+                    rawPlan: sub?.plan || 'FREE',
+                    isTrialActive,
+                    trialEndDate: sub?.trialEndDate?.toISOString() || null,
+                };
+            })
         });
     } catch (error) {
         console.error('Error fetching clubs:', error);

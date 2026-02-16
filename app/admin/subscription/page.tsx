@@ -37,6 +37,7 @@ export default function SubscriptionPage() {
     const [loading, setLoading] = useState(true);
     const [upgrading, setUpgrading] = useState(false);
     const [message, setMessage] = useState('');
+    const [messageType, setMessageType] = useState<'success' | 'error'>('success');
 
     useEffect(() => {
         fetchClubs();
@@ -87,12 +88,15 @@ export default function SubscriptionPage() {
             const data = await res.json();
             if (res.ok) {
                 setMessage('🎉 Successfully upgraded to Pro!');
+                setMessageType('success');
                 fetchSubscription(selectedClubId);
             } else {
                 setMessage(data.error || 'Upgrade failed');
+                setMessageType('error');
             }
         } catch {
             setMessage('Failed to upgrade');
+            setMessageType('error');
         } finally {
             setUpgrading(false);
         }
@@ -110,10 +114,12 @@ export default function SubscriptionPage() {
             });
             if (res.ok) {
                 setMessage('Plan changed to Free');
+                setMessageType('success');
                 fetchSubscription(selectedClubId);
             }
         } catch {
             setMessage('Failed to change plan');
+            setMessageType('error');
         } finally {
             setUpgrading(false);
         }
@@ -166,7 +172,10 @@ export default function SubscriptionPage() {
 
             <div className="max-w-6xl mx-auto px-4 py-8">
                 {message && (
-                    <div className="mb-6 p-4 rounded-xl bg-green-50 border border-green-200 text-green-700 text-center font-medium">
+                    <div className={`mb-6 p-4 rounded-xl text-center font-medium ${messageType === 'error'
+                            ? 'bg-red-50 border border-red-200 text-red-700'
+                            : 'bg-green-50 border border-green-200 text-green-700'
+                        }`}>
                         {message}
                     </div>
                 )}
@@ -180,8 +189,8 @@ export default function SubscriptionPage() {
                                 <div className="flex items-center justify-between mb-4">
                                     <h2 className="text-lg font-semibold text-gray-700">Current Plan</h2>
                                     <span className={`px-3 py-1 rounded-full text-sm font-bold ${subscription.plan === 'PRO'
-                                            ? 'bg-gradient-to-r from-purple-500 to-indigo-600 text-white'
-                                            : 'bg-gray-100 text-gray-600'
+                                        ? 'bg-gradient-to-r from-purple-500 to-indigo-600 text-white'
+                                        : 'bg-gray-100 text-gray-600'
                                         }`}>
                                         {subscription.isTrialActive ? '⭐ PRO TRIAL' : subscription.plan}
                                     </span>
@@ -236,9 +245,9 @@ export default function SubscriptionPage() {
                                     <div className="h-3 bg-gray-100 rounded-full overflow-hidden">
                                         <div
                                             className={`h-full rounded-full transition-all ${subscription.usage.membersLimit > 0 &&
-                                                    subscription.usage.membersUsed / subscription.usage.membersLimit > 0.8
-                                                    ? 'bg-red-500'
-                                                    : 'bg-indigo-500'
+                                                subscription.usage.membersUsed / subscription.usage.membersLimit > 0.8
+                                                ? 'bg-red-500'
+                                                : 'bg-indigo-500'
                                                 }`}
                                             style={{
                                                 width: subscription.usage.membersLimit > 0
@@ -261,9 +270,9 @@ export default function SubscriptionPage() {
                                     <div className="h-3 bg-gray-100 rounded-full overflow-hidden">
                                         <div
                                             className={`h-full rounded-full transition-all ${subscription.usage.meetingsLimit > 0 &&
-                                                    subscription.usage.meetingsThisMonth / subscription.usage.meetingsLimit > 0.8
-                                                    ? 'bg-red-500'
-                                                    : 'bg-emerald-500'
+                                                subscription.usage.meetingsThisMonth / subscription.usage.meetingsLimit > 0.8
+                                                ? 'bg-red-500'
+                                                : 'bg-emerald-500'
                                                 }`}
                                             style={{
                                                 width: subscription.usage.meetingsLimit > 0
@@ -287,8 +296,8 @@ export default function SubscriptionPage() {
                                         <div
                                             key={key}
                                             className={`p-4 rounded-xl border transition ${allowed
-                                                    ? 'border-green-200 bg-green-50'
-                                                    : 'border-gray-200 bg-gray-50 opacity-60'
+                                                ? 'border-green-200 bg-green-50'
+                                                : 'border-gray-200 bg-gray-50 opacity-60'
                                                 }`}
                                         >
                                             <div className="flex items-center gap-2 mb-1">
